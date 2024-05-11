@@ -5,17 +5,25 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "rebuild": "electron-rebuild -f -w better-sqlite3"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.10",
     "@vitejs/plugin-vue": "^4.2.3",
-    "better-sqlite3": "^9.1.1",
-    "electron": "^26.1.0",
     "electron-builder": "^24.6.4",
+    "electron-rebuild": "^3.2.9",
+    "knex": "^3.1.0",
+    "better-sqlite3": "^9.6.0",
+    "electron": "^30.0.3",
+    "fs-extra": "^11.2.0",
     "typescript": "^5.0.2",
     "vite": "^4.4.5",
     "vite-plugin-optimizer": "^1.4.2",
     "vue": "^3.3.4",
     "vue-tsc": "^1.8.5"
+  },
+  "dependencies": {
+
   }
 }

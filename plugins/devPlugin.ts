@@ -8,7 +8,7 @@ export let devPlugin = () => {
                 bundle: true,
                 platform: "node",
                 outfile: "./dist/mainEntry.js",
-                external: ["electron"],
+                external: ["electron", "pg", "tedious", "mysql", "mysql2", "oracledb", "pg-query-stream", "sqlite3"],
             });
             // 修复 'server.httpServer' is possibly 'null'. 的问题
             if(!server.httpServer) throw new Error("server.httpServer is null check devPlugin.ts");

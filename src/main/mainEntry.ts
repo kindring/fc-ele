@@ -2,6 +2,9 @@
 import { app, BrowserWindow } from "electron";
 import {CustomScheme} from "./CustomScheme.ts";
 
+import { db } from "../common/db/db.ts";
+
+
 let mainWindow: BrowserWindow;
 
 app.whenReady().then(() => {
@@ -25,4 +28,14 @@ app.whenReady().then(() => {
     }
     // 开启控制台
     mainWindow.webContents.openDevTools();
+    db("User")
+        .first()
+        .then((obj) => {
+            console.log(obj);
+        }).catch((err) => {
+        console.log("err")
+            console.log(err);
+        });
+
+
 });
