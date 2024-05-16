@@ -1,5 +1,11 @@
-import { createApp } from 'vue'
+import {App, createApp} from 'vue'
 import './style.css'
-import App from './App.vue'
+import AppPage from './App.vue'
+import {windowInit} from "./util/pageHandle.ts";
 
-createApp(App).mount('#app')
+
+const app: App = createApp(AppPage)
+
+windowInit(app);
+
+app.mount('#app');

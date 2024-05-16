@@ -16,4 +16,9 @@ export default defineConfig({
             plugins: [buildPlugin()],
         },
     },
+
+    server: {
+        host: '127.0.0.1',
+    },
+
 });
