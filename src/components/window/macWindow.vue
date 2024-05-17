@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import {ComponentInternalInstance, getCurrentInstance, Ref, ref, UnwrapRef} from "vue";
-import {actionMap, IpcAction, windowAction} from "../../tools/IpcCmd.ts";
+import { IpcAction, windowAction} from "../../tools/IpcCmd.ts";
 
 import "@/assets/base.css"
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance
 defineProps<{
   title: string,
+  icon: string,
 }>()
 const isDing: Ref<UnwrapRef<boolean>> = ref(false)
 const isFull: Ref<UnwrapRef<boolean>> = ref(false)
@@ -31,9 +32,11 @@ const btnClickHandel = (action: IpcAction) => {
 <template>
   <div class="window">
     <div class="top-bar">
-      <div class="drag flex items-center" >
-<!--        <svg-icon :icon-class="icon"/>-->
-        <span class="ml-1.5 ">{{title}}</span>
+      <div class="drag top-title" >
+        <slot name="top">
+          <icon-svg  :class-name="icon"/>
+          <span class="ml-1.5 ">{{title}}</span>
+        </slot>
 
       </div>
 

@@ -9,7 +9,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <mac-window :title="'test'"/>
+  <mac-window :title="'test'" :icon="'home'">
+    测试
+  </mac-window>
 </template>
 
 <style scoped>

@@ -4,12 +4,14 @@ import optimizer from "vite-plugin-optimizer";
 
 import {buildPlugin} from "./plugins/buildPlugin";
 import { devPlugin, getReplacer } from "./plugins/devPlugin";
+import {svgLoader} from "./plugins/SVGLoader";
 
 export default defineConfig({
       plugins: [
           optimizer(getReplacer()),
           devPlugin(),
-          vue()
+          vue(),
+          svgLoader('./src/assets/svg/'),
       ],
     build: {
         rollupOptions: {
