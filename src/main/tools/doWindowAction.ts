@@ -94,14 +94,14 @@ export function maxWin(sign: string): Promise<boolean> {
         try {
             if (!winObj.win.isMaximizable()) {
                 let size = winObj.win.getSize();
-                winObj.style = {
-                    width: size[0],
-                    height: size[1]
-                }
                 // 获取位置
                 let pos = winObj.win.getPosition();
+                winObj.style.width = size[0];
+                winObj.style.height = size[1];
                 winObj.style.x = pos[0];
                 winObj.style.y = pos[1];
+                console.log(winObj.style)
+                // 修改窗口状态
                 winObj.win.maximize();
                 resolve(true)
             } else {
@@ -130,8 +130,12 @@ export function unMaxWin(sign: string): Promise<boolean> {
                     y: 0,
                 }
             }
-            winObj.win.setContentSize(winObj.style.width??1000, winObj.style.height??700);
-            winObj.win.setPosition(winObj.style.x??0, winObj.style.y??0);
+            // 如果是未启用无边框窗口则恢复窗口尺寸
+            // restoreWin(sign);
+
+            // 如果是启用了 无边框 以及透明窗口则设置窗口尺寸
+            winObj.win.setContentSize(winObj.style.width, winObj.style.height);
+            winObj.win.setPosition(winObj.style.x, winObj.style.y);
             // winObj.win.center(); // 窗口居中
             resolve(true);
         } catch (error) {

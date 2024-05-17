@@ -4,6 +4,7 @@ import Path from "path";
 import Logger from '../util/logger';
 import fs from "fs";
 import path from "path";
+import {AppConfig} from "@/types/appConfig.ts";
 
 
 let logger = Logger.logger('config', 'info');

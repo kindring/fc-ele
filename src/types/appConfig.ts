@@ -1,6 +1,6 @@
 import {BrowserWindow} from "electron";
 
-interface HotKeyConfig {
+export interface HotKeyConfig {
     show: string;
     min: string;
 }
@@ -49,13 +49,13 @@ export interface AppWindow {
     isUsed?: boolean;// 是否被使用中,用于复用窗口
     destroyWait?: number;
     isQueryClose?: boolean;// 窗口是否在询问关闭中
-    style?: {
-        width?: number;
-        height?: number;
-        x?: number;
-        y?: number;
+    tray?: Electron.Tray | null;
+    style: {
+        width: number;
+        height: number;
+        x: number;
+        y: number;
     }
-
 }
 
 

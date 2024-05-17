@@ -56,7 +56,10 @@ function handle_ready(){
         // }
     }
     logger.info("[fc-ele] app ready")
-    startApp();
+    setTimeout(() => {
+        startApp();
+    }, 100);
+    // startApp();
 }
 
 async function startApp(){

@@ -1,14 +1,17 @@
 import Logger from "../util/logger";
-import {BrowserWindow} from "electron";
+import { BrowserWindow, globalShortcut, Menu, Tray} from "electron";
 import {CustomScheme} from "./CustomScheme";
 import {getAvailablePort} from "./tools/port.ts";
 import {FcServer, startServer} from "./server/httpServer.ts";
-import {AppWindow, AppConfig} from "../types/appConfig.ts";
+import {AppWindow, AppConfig, HotKeyConfig} from "../types/appConfig.ts";
 import {randomId} from "../util/random.ts";
 import {actionMap} from "../tools/IpcCmd.ts";
 import BrowserWindowConstructorOptions = Electron.BrowserWindowConstructorOptions;
 import {initIpc} from "./tools/ipcInit.ts";
 import {initHook} from "./tools/hookInit.ts";
+import hook from "@/util/hook.ts";
+import path from "path";
+import Path from "path";
 
 let logger = Logger.logger('controlWindow', 'info');
 
@@ -21,6 +24,28 @@ let _appConfig: AppConfig;
 let _winArr: AppWindow[] = [];
 let checkTimer: NodeJS.Timeout;
 let isExitAppTask = false;// 是否处于退出任务中
+
+const defaultWin : AppWindow = {
+    id: '',
+    sign: '',
+    parentSign: '',
+    type: '',
+    title: '未知窗口',
+    description: '窗口描述文件',
+    win: null,
+    isMain: false,
+    timer: null,// 等待销毁计时器
+    hide: false,// 是否隐藏
+    isConnected: false,// 是否已经建立连接
+    isUsed: false,// 是否被使用中,用于复用窗口
+    destroyWait: 30,
+    style: {
+        width: 0,
+        height: 0,
+        x: 0,
+        y: 0
+    }
+}
 function _generate_unique_window_id(){
     let id = randomId();
     let ind = -1;
@@ -111,29 +136,8 @@ function winTryConnect(): void {
 function registerApp(newApp: Electron.App) {
     _app = newApp;
 }
-
 function registerWin(windowConfig: AppWindow): AppWindow{
-    let defaultWin : AppWindow = {
-        id: '',
-        sign: '',
-        parentSign: '',
-        type: '',
-        title: '未知窗口',
-        description: '窗口描述文件',
-        win: null,
-        isMain: false,
-        timer: null,// 等待销毁计时器
-        hide: false,// 是否隐藏
-        isConnected: false,// 是否已经建立连接
-        isUsed: false,// 是否被使用中,用于复用窗口
-        destroyWait: 30,
-        style: {
-            width: 0,
-            height: 0,
-            x: 0,
-            y: 0
-        }
-    }
+
     let finalWindow = {...defaultWin, ...windowConfig }
     finalWindow.id = _generate_unique_window_id();
     finalWindow.sign = `${finalWindow.type}:${finalWindow.id}`;
@@ -149,9 +153,61 @@ function registerWin(windowConfig: AppWindow): AppWindow{
 
     winTryConnect();
 
-
-
     return finalWindow;
+}
+function registerHotKey(hotKey: HotKeyConfig, mainWin: AppWindow){
+    if(mainWin.win == null){
+        logger.error(`注册快捷键失败,窗口${mainWin.sign}不存在`);
+        return false;
+    }
+    // 注册快捷键
+    logger.info(`注册显示窗口快捷键 ${hotKey.show}`)
+    globalShortcut.register(hotKey.show, function() {
+        // 隐藏,与显示窗口
+        if(mainWin.win?.isVisible()){
+            hook.runHook(actionMap.hide.code, mainWin.sign).then(r => r)
+        }else{
+            hook.runHook(actionMap.show.code, mainWin.sign).then(r => r)
+        }
+    })
+    logger.info(`最小化窗口快捷键 ${hotKey.min}`)
+    globalShortcut.register(hotKey.min, function() {
+        // 最小化窗口和恢复窗口
+        if (mainWin.win) {
+            if (!mainWin.win.isMinimized()) {
+                logger.info(`最小化窗口 ${mainWin.sign}`);
+                hook.runHook(actionMap.min.code, mainWin.sign).then(r => r)
+            } else {
+                hook.runHook(actionMap.restore.code, mainWin.sign).then(r => r)
+            }
+        }
+    })
+    return true
+}
+function _createTray(app: Electron.App, mainWin: AppWindow){
+    const appPath = app.isPackaged ? path.dirname(app.getPath('exe')) : app.getAppPath();
+
+    logger.info(`[托盘挂载] appPath:${appPath}`);
+    // 创建系统托盘
+    const iconPath = Path.resolve( appPath,`/logo.ico`);
+    mainWin.tray = new Tray(iconPath);
+    mainWin.tray.setToolTip('fc-ele');
+    const contextMenu = Menu.buildFromTemplate([
+        {
+            label: '显示主窗口',
+            click: () => {
+                hook.runHook(actionMap.show.code, mainWin.sign).then(r => r)
+            }
+        },
+        {
+            label: '退出',
+            click: () => {
+                hook.runHook(actionMap.exitApp.code,mainWin.sign).then(r => r)
+            }
+        }
+    ]);
+    // 载入托盘菜单
+    mainWin.tray.setContextMenu(contextMenu);
 }
 
 function _createMainWindow(){
@@ -169,7 +225,7 @@ function _createMainWindow(){
         height: 620,
         frame: false, //任务栏是否显示
         show: true,
-        transparent: false, //无边框
+        transparent: true, //无边框
         resizable: false,// 禁止 重新设置窗口大小
         maximizable: false, //禁止最大化
         webPreferences: {
@@ -186,47 +242,6 @@ function _createMainWindow(){
     mainWindow.loadURL(MainUrl);
     mainWindow.webContents.openDevTools();
     return mainWindow;
-}
-export async function initApp(appConfig: AppConfig, app: Electron.App) : Promise<AppWindow | null>{
-    logger.info('start init control window');
-    let mainWindow : BrowserWindow = _createMainWindow();
-    let err, port: number, server: FcServer | null;
-    _appConfig = appConfig;
-    [err,port] = await getAvailablePort(WebPort,300);
-    if (port === -1){
-        logger.error(`[应用初始化] 获取可用端口失败`);
-        return null
-    }
-    WebPort = port;
-    logger.info(`get allow webPort: ${WebPort}`);
-    // 启动web服务
-    [err, server] = await startServer(WebPort, _appConfig.enableIpv6);
-    if (err){
-        logger.error(`[应用初始化] 启动web服务失败: ${err}`);
-        return null
-    }
-    logger.info(`[应用初始化] 启动web服务成功`);
-    _webServer = server;
-
-    // 初始化钩子函数
-    initHook();
-    // 初始化 Ipc 监听
-    initIpc();
-
-    // 创建主窗口
-    let mainWin = registerWin({
-        type: 'main',
-        title: '主进程窗口',
-        win: mainWindow,
-        isMain: true,
-    });
-
-    // 绑定主进程
-    registerApp(app)
-
-
-
-    return mainWin;
 }
 
 
@@ -258,6 +273,61 @@ async function exit(){
     // 清理窗口
     _app.quit();
     return 0;
+}
+
+
+export async function initApp(appConfig: AppConfig, app: Electron.App) : Promise<AppWindow | null>{
+    logger.info('start init control window');
+    let mainWindow : BrowserWindow = _createMainWindow();
+    let err, port: number, server: FcServer | null;
+    _appConfig = appConfig;
+    [err,port] = await getAvailablePort(WebPort,300);
+    if (port === -1){
+        logger.error(`[应用初始化] 获取可用端口失败`);
+        return null
+    }
+    WebPort = port;
+    logger.info(`get allow webPort: ${WebPort}`);
+    // 启动web服务
+    [err, server] = await startServer(WebPort, _appConfig.enableIpv6);
+    if (err){
+        logger.error(`[应用初始化] 启动web服务失败: ${err}`);
+        return null
+    }
+    logger.info(`[应用初始化] 启动web服务成功`);
+    _webServer = server;
+
+    // 初始化钩子函数
+    initHook();
+    // 初始化 Ipc 监听
+    initIpc();
+
+    // 创建主窗口
+    let mainWin = registerWin({
+        ...defaultWin,
+        type: 'main',
+        title: '主进程窗口',
+        win: mainWindow,
+        isMain: true,
+
+    });
+
+    // 绑定主进程
+    registerApp(app)
+
+    // 注册托盘
+    _createTray(app, mainWin)
+
+    // 注册快捷键
+    if(registerHotKey(appConfig.hotKey, mainWin)){
+        logger.info(`[应用初始化] 快捷键注册完成`);
+    }
+
+
+
+    logger.info(`[应用初始化] 初始化完成`);
+
+    return mainWin;
 }
 
 
