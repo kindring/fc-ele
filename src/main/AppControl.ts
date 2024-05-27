@@ -72,6 +72,12 @@ function findWin(sign: string): AppWindow | null {
     return null;
 }
 
+function findWinByType(type: string): AppWindow[] {
+    // 同一个类型可能有多个窗口
+
+    return _winArr.filter(value => value.type === type);
+}
+
 
 function removeWin(sign: string){
     let winObj = findWin(sign);
@@ -94,7 +100,7 @@ function removeWin(sign: string){
 /**
  * 遍历绑定窗口的句柄
  */
-function winTryConnect(): void {
+export function winTryConnect(): void {
     if (checkTimer) {
         clearTimeout(checkTimer);
         // 清除计时器
@@ -114,6 +120,7 @@ function winTryConnect(): void {
                         signId: item.sign,
                         baseUrl: `${BaseUrl}:${WebPort}`,
                         key: _webServer? _webServer.$serverKey : '',
+                        type: item.type,
                     });
                 } else {
                     logger.error(`窗口 ${item.sign} 的窗口对象不存在`);
@@ -189,7 +196,9 @@ function _createTray(app: Electron.App, mainWin: AppWindow){
 
     logger.info(`[托盘挂载] appPath:${appPath}`);
     // 创建系统托盘
-    const iconPath = Path.resolve( appPath,`/logo.ico`);
+    const iconPath = Path.resolve( appPath, `./logo.ico`);
+
+    logger.info(`[路径配置] iconPath: ${iconPath}`)
     mainWin.tray = new Tray(iconPath);
     mainWin.tray.setToolTip('fc-ele');
     const contextMenu = Menu.buildFromTemplate([
@@ -309,7 +318,6 @@ export async function initApp(appConfig: AppConfig, app: Electron.App) : Promise
         title: '主进程窗口',
         win: mainWindow,
         isMain: true,
-
     });
 
     // 绑定主进程
@@ -334,6 +342,7 @@ export async function initApp(appConfig: AppConfig, app: Electron.App) : Promise
 export default {
     isExitAppTask,
     findWin,
+    findWinByType,
     removeWin,
     exit
 }

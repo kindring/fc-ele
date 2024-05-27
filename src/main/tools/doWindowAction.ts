@@ -1,4 +1,4 @@
-import AppControl from "../AppControl.ts";
+import AppControl, {winTryConnect} from "../AppControl.ts";
 import Logger from "../../util/logger.ts";
 import {AppWindow} from "../../types/appConfig.ts";
 
@@ -10,6 +10,21 @@ export async function connectedWin(sign: string){
         logger.info(`[窗口挂载] 窗口连接成功:${winObj.title}`);
         winObj.isConnected = true;
     }
+}
+
+export async function tryConnectWin(type: string){
+    // 寻找窗口
+    let winArr = AppControl.findWinByType(type)
+    logger.info(`[前端链接窗口] 寻找${type}类型的窗口`);
+    if (winArr.length === 0) {
+        logger.error(`[前端链接窗口] 未找到${type}类型的窗口,尝试创建 ....`);
+        return;
+    }
+    // 循环修改窗口连接状态
+    winArr.forEach(winObj => {
+        winObj.isConnected = false;
+    });
+    winTryConnect();
 }
 
 

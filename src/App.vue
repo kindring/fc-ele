@@ -1,16 +1,23 @@
 <script setup lang="ts">
 // import HelloWorld from './components/HelloWorld.vue'
 
-import { onMounted } from "vue";
+import {onMounted, ref} from "vue";
 import MacWindow from "./components/window/macWindow.vue";
+import MagnetView from "./components/magnetView.vue";
+
 onMounted(() => {
 
 });
+
+
+const title = ref("fc-ele");
+
 </script>
 
 <template>
-  <mac-window :title="'test'" :icon="'home'">
-    测试
+  <mac-window :title="title" :icon="'home'">
+    <magnet-view>
+    </magnet-view>
   </mac-window>
 </template>
 
@@ -29,4 +36,6 @@ onMounted(() => {
 .logo.vue:hover {
   filter: drop-shadow(0 0 2em #42b883aa);
 }
+
+
 </style>

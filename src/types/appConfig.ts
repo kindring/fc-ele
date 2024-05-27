@@ -64,5 +64,6 @@ export interface registerWindowData {
     signId: string;
     baseUrl: string;
     key: string;
+    type: string;
 }
 
