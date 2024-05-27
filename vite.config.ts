@@ -20,11 +20,12 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            "@": "./src",
+            "@": "/src",
         },
     },
 
     server: {
+        hmr:true,
         host: '127.0.0.1',
     },
 

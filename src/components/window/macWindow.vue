@@ -30,38 +30,62 @@ const btnClickHandel = (action: IpcAction) => {
 </script>
 
 <template>
-  <div class="window">
-    <div class="top-bar">
-      <div class="drag top-title" >
-        <slot name="top">
-          <icon-svg  :class-name="icon"/>
-          <span class="ml-1.5 ">{{title}}</span>
-        </slot>
+  <div :class="[isFull? 'max_window': 'min_window']">
+    <div class="window">
+      <div class="top-bar">
+        <div class="drag top-title" >
+          <slot name="top">
+            <icon-svg  :class-name="icon" :icon-class="icon"/>
+            <span class="ml-1.5 ">{{title}}</span>
+          </slot>
 
-      </div>
+        </div>
 
-      <div class="control-box">
-        <slot name="top"></slot>
-        <div :class="`no-drag btn ding ${isDing?'ding-is':''}`"  @click="switchDingHandle">
-          <span class="showTip">{{isDing?"取消置顶":"置顶"}}</span>
-        </div>
-        <div class="no-drag btn min" @click="btnClickHandel(windowAction.min)">
-          <span class="showTip">最小化</span>
-        </div>
-        <div :class="`no-drag btn full ${isFull?'full-is':''}`"  @click="switchFullHandle">
-          <span class="showTip">{{isFull?'取消全屏':'全屏'}}</span>
-        </div>
-        <div class="no-drag btn close"  @click="btnClickHandel(windowAction.close)">
-          <span class="showTip">关闭窗口</span>
+        <div class="control-box">
+          <slot name="top"></slot>
+          <div :class="`no-drag btn ding ${isDing?'ding-is':''}`"  @click="switchDingHandle">
+            <span class="showTip">{{isDing?"取消置顶":"置顶"}}</span>
+          </div>
+          <div class="no-drag btn min" @click="btnClickHandel(windowAction.min)">
+            <span class="showTip">最小化</span>
+          </div>
+          <div :class="`no-drag btn full ${isFull?'full-is':''}`"  @click="switchFullHandle">
+            <span class="showTip">{{isFull?'取消全屏':'全屏'}}</span>
+          </div>
+          <div class="no-drag btn close"  @click="btnClickHandel(windowAction.close)">
+            <span class="showTip">关闭窗口</span>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="window-content">
-      <slot></slot>
+      <div class="window-content">
+        <slot></slot>
+      </div>
     </div>
   </div>
 </template>
 
-<style scoped>
+<style>
+
+.min_window{
+  width: calc( 100% - 10px);
+  height:  calc( 100% - 10px);
+  margin: 5px;
+  box-sizing: border-box;
+}
+.max_window{
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.window{
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  border-radius: 3px;
+  box-shadow: 0 0 3px #000;
+  position: relative;
+  overflow: hidden;
+}
 
 </style>

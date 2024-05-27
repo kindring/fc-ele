@@ -36,6 +36,7 @@ export function initIpc() {
     logger.info('初始化ipc事件');
     // 绑定ipc事件
     bindAction(windowAction.bindSignId,true);
+    bindAction(windowAction.bindSignId);
     bindAction(windowAction.close);
     bindAction(windowAction.min);
     bindAction(windowAction.max);

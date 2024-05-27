@@ -7,7 +7,7 @@ import {
     maxWin,
     minWin,
     restoreWin,
-    showWin, topWin,
+    showWin, topWin, tryConnectWin,
     unMaxWin,
     unTopWin
 } from "./doWindowAction.ts";
@@ -37,6 +37,8 @@ function hookBind(action: IpcAction, fn: HookFn<any>, bindReplay = false){
 export function initHook(){
     logger.info('initHook');
     hookBind(actionMap.bindSignId, connectedWin,true);
+    // 前端发给主进程的指令, 尝试绑定窗口
+    hookBind(actionMap.bindSignId, tryConnectWin);
     hookBind(actionMap.close, closeWin);
     hookBind(actionMap.min, minWin);
     hookBind(actionMap.max, maxWin);
@@ -47,5 +49,4 @@ export function initHook(){
     hookBind(actionMap.hide, hideWin);
     hookBind(actionMap.show, showWin);
     hookBind(actionMap.exitApp, appControl.exit);
-
 }

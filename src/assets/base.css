@@ -4,15 +4,7 @@
 .no-drag{
     -webkit-app-region: no-drag;
 }
-.window{
-    width: 100%;
-    height: 100%;
-    background: #fff;
-    border-radius: 3px;
-    box-shadow: 0 0 3px #000;
-    position: relative;
-    overflow: hidden;
-}
+
 .top-bar{
     width: 100%;
     height: 30px;
@@ -103,6 +95,5 @@
     /*    允许被点击*/
 }
 
-.ml-1\.5{
-    margin-left: 1.5rem;
-}
+
+
