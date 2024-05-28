@@ -132,9 +132,13 @@ function selectDay(calendarItem:  Calendar, index: number){
 .now-info {
   width: 100%;
   height: 80px;
+  box-sizing: border-box;
+  padding-left: 10px;
 }
 .now-info .hour {
   font-size: 30px;
+  font-weight: bold;
+  margin-left: -5px;
 }
 .now-info .year {
   margin-top: 5px;
@@ -182,7 +186,9 @@ function selectDay(calendarItem:  Calendar, index: number){
   -ms-user-select: none;
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
-
+}
+.sty-medium .calendar-item{
+  margin-top: 3px;
 }
 .calendar-item:hover{
   border: 2px solid #42a4f1;

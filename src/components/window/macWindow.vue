@@ -35,7 +35,7 @@ const btnClickHandel = (action: IpcAction) => {
       <div class="top-bar">
         <div class="drag top-title" >
           <slot name="top">
-            <icon-svg  :class-name="icon" :icon-class="icon"/>
+            <icon-svg  :icon-name="icon"/>
             <span class="ml-1.5 ">{{title}}</span>
           </slot>
 
@@ -43,16 +43,16 @@ const btnClickHandel = (action: IpcAction) => {
 
         <div class="control-box">
           <slot name="top"></slot>
-          <div :class="`no-drag btn ding ${isDing?'ding-is':''}`"  @click="switchDingHandle">
+          <div :class="`no-drag showTopTip btn ding ${isDing?'ding-is':''}`"  @click="switchDingHandle">
             <span class="showTip">{{isDing?"取消置顶":"置顶"}}</span>
           </div>
-          <div class="no-drag btn min" @click="btnClickHandel(windowAction.min)">
+          <div class="no-drag showTopTip btn min" @click="btnClickHandel(windowAction.min)">
             <span class="showTip">最小化</span>
           </div>
-          <div :class="`no-drag btn full ${isFull?'full-is':''}`"  @click="switchFullHandle">
+          <div :class="`no-drag showTopTip btn full ${isFull?'full-is':''}`"  @click="switchFullHandle">
             <span class="showTip">{{isFull?'取消全屏':'全屏'}}</span>
           </div>
-          <div class="no-drag btn close"  @click="btnClickHandel(windowAction.close)">
+          <div class="no-drag showTopTip btn close"  @click="btnClickHandel(windowAction.close)">
             <span class="showTip">关闭窗口</span>
           </div>
         </div>

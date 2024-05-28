@@ -56,7 +56,8 @@ export function timeFormat(t: Date, format: string): string {
     let tf = function(i: number) {
         return (i < 10 ? '0' : '') + i;
     };
-    format.replace(/yyyy/, tf(t.getFullYear()))
+
+    return format.replace(/yyyy/, tf(t.getFullYear()))
         .replace(/MM/, tf(t.getMonth() + 1))
         .replace(/M/, String(t.getMonth() + 1))
         .replace(/dd/, tf(t.getDate()))
@@ -67,7 +68,6 @@ export function timeFormat(t: Date, format: string): string {
         .replace(/m/, String(t.getMinutes()))
         .replace(/ss/, tf(t.getSeconds()))
         .replace(/s/, String(t.getSeconds()));
-    return format
 }
 
 /**

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, shallowRef} from "vue";
+import { shallowRef} from "vue";
 import {Magnet, MagnetEmit, MagnetSize} from "@/types/magnetType.ts";
 import {computeMagnetStyle, initTimeMagnetInfo} from "@/components/magnets/magnetInfo.ts";
 
@@ -28,7 +28,7 @@ const magnetItemInfos: vueMagnet[] = [
     id: `233`,
     type: timeMagnetInfo.type,
     x: 7,
-    y: 0,
+    y: 10,
     width: timeMagnetInfo.sizes.small?.width??0,
     height: timeMagnetInfo.sizes.small?.height??0,
     size: MagnetSize.small,
@@ -37,8 +37,6 @@ const magnetItemInfos: vueMagnet[] = [
     component: timeMagnetInfo.component
   }
 ];
-
-
 
 const magnetItems = shallowRef(magnetItemInfos)
 
@@ -51,10 +49,10 @@ function eventHandler(magnetEmit: MagnetEmit<any>){
     case timeMagnetInfo.event:
       daySelect(magnetEmit.data)
     break;
-      default:
-        console.log('no match event')
-        console.log(magnetEmit)
-        break;
+    default:
+      console.log('no match event')
+      console.log(magnetEmit)
+    break;
   }
 }
 
@@ -64,14 +62,14 @@ function eventHandler(magnetEmit: MagnetEmit<any>){
 
 <template>
 <!-- 磁帖 布局组件, -->
-<div class="magnet">
-
+<div class="magnet scroll">
   <!--    磁贴组件布局 -->
   <div class="magnet-item"
        v-for="magnet in magnetItems"
        :key="magnet.id"
        :style="computeMagnetStyle(magnet)"
   >
+    <div class="magnet-item-bg"></div>
     <component
         :is="magnet.component"
         :size="magnet.size"
@@ -88,13 +86,32 @@ function eventHandler(magnetEmit: MagnetEmit<any>){
   height: 100%;
   display: flex;
   position: relative;
+  overflow-y: auto;
+  padding-bottom: 60px;
 }
+
+
 
 .magnet-item {
   position: absolute;
-  border-radius: 10px;
-  box-shadow: 0px 1px 2px #ccc;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px #ccc;
+  overflow: hidden;
 }
 
+.magnet-item > * {
+  position: relative;
+}
+
+.magnet-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  opacity: 0.5;
+}
 
 </style>

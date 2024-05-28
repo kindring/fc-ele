@@ -3,25 +3,29 @@ import {computed} from 'vue'
 // import type {PropType} from 'vue'
 
 let props = defineProps({
-  iconClass: {
+  iconName: {
     type: String,
     required: true,
   },
-  className: {
+  svgHref: {
     type: String,
     default: '',
   },
+  svgClass: {
+    type: String,
+    default: '',
+  }
 });
 
-let svgClass = computed(() => `svg-icon ${props.className ?? ''}`);
-
-let iconName = computed(() => `#icon-${props.className}`);
+let svgClass = computed(() => `svg-icon ${props.svgClass ?? ''}`);
+let _iconName = computed(() => `#icon-${props.iconName}`);
 
 </script>
 
 <template>
   <svg :class="svgClass" aria-hidden="true">
-    <use :xlink:href="iconName"/>
+    <image v-if="svgHref" :xlink:href="svgHref" />
+    <use v-else :xlink:href="_iconName"/>
   </svg>
 </template>
 

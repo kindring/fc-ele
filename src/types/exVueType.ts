@@ -1,4 +1,4 @@
-import vue from 'vue'; // eslint-disable-line no-unused-vars
+// import vue from 'vue'; // eslint-disable-line no-unused-vars
 import {IpcAction} from "../tools/IpcCmd.ts";
 
 declare module '@vue/runtime-core' {

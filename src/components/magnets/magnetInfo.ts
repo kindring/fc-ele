@@ -9,6 +9,7 @@ const cellMargin = 10;
 
 export const MagnetEvent = "magnet"
 
+// 时间组件
 export const timeMagnetInfo: MagnetInfo =
 {
     type: 'TimeMagnet',
@@ -26,6 +27,8 @@ export const timeMagnetInfo: MagnetInfo =
     },
     component: null
 }
+
+
 
 export function initTimeMagnetInfo(component: any): MagnetInfo{
     timeMagnetInfo.component = component

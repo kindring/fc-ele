@@ -4,38 +4,90 @@
 import {onMounted, ref} from "vue";
 import MacWindow from "./components/window/macWindow.vue";
 import MagnetView from "./components/magnetView.vue";
+import AppleBar from "@/components/appleBar/appleBar.vue";
+import {NavItem} from "@/components/appleBar/appleBar.ts";
 
 onMounted(() => {
 
 });
 
+let navItems:NavItem[] = [
+  {
+    id: 1,
+    name: '首页',
+    actionCode: 'toHome',
+    description: '返回首页',
+    icon: 'system',
+  },
+  {
+    id: 1,
+    name: '首页',
+    actionCode: 'toHome',
+    description: '返回首页',
+    icon: 'home',
+  },
+  {
+    id: 1,
+    name: '首页',
+    actionCode: 'toHome',
+    description: '返回首页',
+    icon: 'setting',
+  },
+]
 
 const title = ref("fc-ele");
 
+const navAction = (actionCode:string) => {
+  console.log(`action: ${actionCode}`);
+}
 </script>
 
 <template>
   <mac-window :title="title" :icon="'home'">
-    <magnet-view>
-    </magnet-view>
+    <div class="image-bg">
+      <img src="./assets/images/bg.jpg" alt="">
+    </div>
+    <div class="app-bar">
+      <apple-bar
+          :nav-items="navItems"
+          :hide-time="3000"
+          @action="navAction"
+      ></apple-bar>
+    </div>
+    <div class="app-content">
+      <magnet-view/>
+    </div>
+
   </mac-window>
 </template>
 
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+
+.app-content {
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-background-soft);
+  overflow: auto;
+}
+.app-bar{
+  width: 100%;
+  height: 70px;
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 1000;
 }
 
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+@media screen and (max-width: 768px) {
+  .app-content {
+    height: calc(100% - 50px);
+  }
+  .app-bar {
+    position: relative;
+    bottom: 0;
+  }
 }
-
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
-
 
 </style>
