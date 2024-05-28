@@ -46,10 +46,12 @@ export let devPlugin = () => {
     };
 };
 
-
+type ResultObject = {
+    [key: string]: () => { find: RegExp; code: string };
+};
 export let getReplacer = () => {
     let externalModels = ["os", "fs", "path", "events", "child_process", "crypto", "http", "buffer", "url", "better-sqlite3", "knex"];
-    let result = {};
+    let result:ResultObject = {};
     for (let item of externalModels) {
         result[item] = () => ({
             find: new RegExp(`^${item}$`),

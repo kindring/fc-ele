@@ -8,7 +8,16 @@ import expireKey from "../../../util/expireKey.ts";
  * @param next
  */
 export default function (req: Request, res: Response, next: NextFunction) {
-    let key = req.headers['key'];
+    let key:string | string[] | undefined  = req.headers['key'];
+    // 判断key是否为空
+    if(!key){
+        return notPermission(res, 'key not find');
+    }
+    // 如果key 的类型为 string[]
+    if(Array.isArray(key)){
+        key = key[0];
+    }
+    // 判断key
     if(!key || !expireKey.checkKey(key)){
         return notPermission(res, 'key error');
     }
