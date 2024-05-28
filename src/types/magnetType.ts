@@ -43,11 +43,13 @@ interface size {
     height: number,
 }
 
+
 /**
  * 磁贴大小定义
  */
 export interface MagnetInfo  {
     type: string,
+    event: string,
     // 磁贴可以有多个可选尺寸, 不同尺寸, 对应不同宽高
     sizes:
         { [key in MagnetSize]?: size}
@@ -55,4 +57,10 @@ export interface MagnetInfo  {
     defaultSize: MagnetSize,
     // 磁贴内容, 确定磁贴中的具体内容
     component: any
+}
+
+
+export interface MagnetEmit<T>{
+    event: string,
+    data: T,
 }

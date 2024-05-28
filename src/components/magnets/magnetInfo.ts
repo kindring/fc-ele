@@ -7,14 +7,21 @@ import {Magnet, MagnetInfo, MagnetSize} from "@/types/magnetType.ts";
 const cellWidth = 50;
 const cellMargin = 10;
 
-const timeMagnetInfo: MagnetInfo =
+export const MagnetEvent = "magnet"
+
+export const timeMagnetInfo: MagnetInfo =
 {
     type: 'TimeMagnet',
+    event: 'daySelect',
     defaultSize: MagnetSize.medium,
     sizes: {
-        medium: {
-            width: 5,
+        small: {
+            width: 7,
             height: 3,
+        },
+        medium: {
+            width: 7,
+            height: 6,
         },
     },
     component: null

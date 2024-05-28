@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref} from "vue";
-import {Magnet, MagnetSize} from "@/types/magnetType.ts";
+import {ref, shallowRef} from "vue";
+import {Magnet, MagnetEmit, MagnetSize} from "@/types/magnetType.ts";
 import {computeMagnetStyle, initTimeMagnetInfo} from "@/components/magnets/magnetInfo.ts";
 
 import TimeMagnet from "@/components/magnets/timeMagnet.vue";
+import {Calendar} from "@/util/time.ts";
 
 const timeMagnetInfo = initTimeMagnetInfo(TimeMagnet)
 
@@ -26,11 +27,11 @@ const magnetItemInfos: vueMagnet[] = [
   {
     id: `233`,
     type: timeMagnetInfo.type,
-    x: 6,
-    y: 6,
-    width: timeMagnetInfo.sizes.medium?.width??0,
-    height: timeMagnetInfo.sizes.medium?.height??0,
-    size: MagnetSize.medium,
+    x: 7,
+    y: 0,
+    width: timeMagnetInfo.sizes.small?.width??0,
+    height: timeMagnetInfo.sizes.small?.height??0,
+    size: MagnetSize.small,
     editMode: false,
     selected: false,
     component: timeMagnetInfo.component
@@ -39,9 +40,23 @@ const magnetItemInfos: vueMagnet[] = [
 
 
 
-const magnetItems = ref(magnetItemInfos)
+const magnetItems = shallowRef(magnetItemInfos)
 
-
+function daySelect(calendar: Calendar){
+  console.log(`选择日期 ${calendar.year}年 ${calendar.month}月 ${calendar.day}日`)
+}
+function eventHandler(magnetEmit: MagnetEmit<any>){
+  // 事件处理
+  switch (magnetEmit.event){
+    case timeMagnetInfo.event:
+      daySelect(magnetEmit.data)
+    break;
+      default:
+        console.log('no match event')
+        console.log(magnetEmit)
+        break;
+  }
+}
 
 
 
@@ -57,7 +72,11 @@ const magnetItems = ref(magnetItemInfos)
        :key="magnet.id"
        :style="computeMagnetStyle(magnet)"
   >
-    <component :is="magnet.component" v-bind:size="magnet.size"></component>
+    <component
+        :is="magnet.component"
+        :size="magnet.size"
+        @magnet="eventHandler"
+    ></component>
   </div>
 
 </div>
@@ -76,5 +95,6 @@ const magnetItems = ref(magnetItemInfos)
   border-radius: 10px;
   box-shadow: 0px 1px 2px #ccc;
 }
+
 
 </style>
