@@ -152,6 +152,7 @@ function actionHandle(actionCode: string): void{
 }
 .appleItemGroup .active{
   color: var(--color-text-show);
+  transform: scale(1.25);;
 }
 .appleItem-content{
   width: 45px;
@@ -179,9 +180,12 @@ function actionHandle(actionCode: string): void{
   color: var(--color-text);
   transition: all 0.8s;
 }
+.appleItemGroup .active .icon{
+  color: var(--color-text-show);
+}
 
 .appleItem:hover .appleItem-content, .appleUser:hover .appleItem-content{
-  transform: scale(1.3);
+  transform: scale(1.35);
   box-shadow: 0 0 10px 0 rgba(0,0,0,0.2);
   color: var(--color-text);
   background-color: var(--color-background-soft);
