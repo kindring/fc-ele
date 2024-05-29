@@ -14,7 +14,7 @@ interface vueMagnet extends Magnet{
 const magnetItemInfos: vueMagnet[] = [
   {
     id: `1`,
-    type: 'TimeMagnet',
+    type: timeMagnetInfo.type,
     x: 0,
     y: 0,
     width: timeMagnetInfo.sizes.medium?.width??0,
@@ -76,7 +76,6 @@ function eventHandler(magnetEmit: MagnetEmit<any>){
         @magnet="eventHandler"
     ></component>
   </div>
-
 </div>
 </template>
 

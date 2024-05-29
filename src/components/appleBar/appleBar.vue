@@ -10,12 +10,12 @@ let isHidden = ref(true);
 
 
 let props = defineProps({
-//   是否全屏
+  //   是否全屏
   isFullScreen: {
     type: Boolean,
     default: false
   },
-//   导航项
+  //   导航项
   navItems:  {
     type: Array as PropType<NavItem[]>,
     default: ():NavItem[] => []
@@ -23,6 +23,10 @@ let props = defineProps({
   hideTime: {
     type: Number,
     default: 3000
+  },
+  active: {
+    type: String,
+    default: ''
   }
 });
 
@@ -71,7 +75,8 @@ function actionHandle(actionCode: string): void{
     <div class="appleBar" @mouseenter="barActiveHandle" @mouseleave="startHideTimer">
       <div class="bgMask"></div>
       <div class="appleItemGroup">
-        <div class="appleItem showCenterTip"
+        <div
+            :class="`appleItem showCenterTip ${active==item.actionCode?'active':''}`"
              v-for="item in props.navItems"
              :key="item.id"
               @click="actionHandle(item.actionCode)"
@@ -123,7 +128,6 @@ function actionHandle(actionCode: string): void{
   border-radius: 10px;
   opacity: 0.6;
   background-color: var(--color-background-soft);
-  z-index: 1;
 }
 .appleItemGroup{
   width: 100%;
@@ -131,7 +135,6 @@ function actionHandle(actionCode: string): void{
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2;
   position: relative;
 }
 .appleItem{
@@ -141,12 +144,14 @@ function actionHandle(actionCode: string): void{
   justify-content: center;
   align-items: center;
   margin: 0 10px;
-
   font-size: 20px;
   font-weight: bold;
   color: var(--color-text);
   cursor: pointer;
   opacity: 0.8;
+}
+.appleItemGroup .active{
+  color: var(--color-text-show);
 }
 .appleItem-content{
   width: 45px;
@@ -166,7 +171,6 @@ function actionHandle(actionCode: string): void{
   display: flex;
   flex-shrink: 0;
   position: relative;
-  z-index: 2;
 }
 
 .appleItem .icon{
@@ -192,6 +196,7 @@ function actionHandle(actionCode: string): void{
   opacity: 0.4;
   margin-bottom: 5px;
   cursor: pointer;
+  background-color: var(--color-background);
 }
 
 .hidden .appleBar .appleItem{
