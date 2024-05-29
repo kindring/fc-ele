@@ -102,7 +102,10 @@ class BuildObj {
                     shortcutName: "fc-ele",
                 },
                 publish: [{ provider: "generic", url: "http://localhost:5500/" }],
-                extraResources: [{ from: `./db.db`, to: `./` }],
+                extraResources: [
+                    { from: `./db.db`, to: `./` },
+                    { from: `./logo.ico`, to: `./` },
+                ],
             },
             project: process.cwd(),
         };

@@ -1,4 +1,5 @@
 import { ViteDevServer } from "vite";
+import path from "path";
 
 
 
@@ -23,6 +24,10 @@ export let devPlugin = () => {
 
             if (!server.httpServer) throw new Error("server.httpServer is null check devPlugin.ts  ");
 
+            // 转移logo文件至dist目录
+            let targetPath = path.resolve(__dirname, "../dist/logo.ico");
+            let logoPath = path.resolve(__dirname, "../static/logo.ico");
+            require("fs").copyFileSync(logoPath, targetPath);
             server.httpServer?.once("listening", () => {
                 let { spawn } = require("child_process");
                 let addressInfo = server.httpServer?.address() as any;

@@ -8,7 +8,9 @@
  */
 import Path from 'path';
 import log4js from 'log4js';
-import {app} from "electron";
+// import {app} from "electron";
+import path from "path";
+import os from "os";
 
 let levels: { [key: string]: log4js.Level } = {
     'trace': log4js.levels.TRACE,
@@ -20,8 +22,9 @@ let levels: { [key: string]: log4js.Level } = {
 }
 
 const logFileName = 'fcE.log';
-const appPath = app.isPackaged ? Path.dirname(app.getPath('exe')) : app.getAppPath();
-const _path = process.env.WEBPACK_DEV_SERVER_URL?`logs/${logFileName}`: Path.resolve( appPath,`logs/${logFileName}`);
+let userPath = path.join(os.homedir(), '/fc-ele/');
+// const appPath = app.isPackaged ? Path.dirname(app.getPath('exe')) : app.getAppPath();
+const _path = process.env.WEBPACK_DEV_SERVER_URL?`logs/${logFileName}`: Path.resolve( userPath,`/logs/${logFileName}`);
 console.log(_path);
 
 const config = {

@@ -33,6 +33,7 @@ export async function tryConnectWin(type: string){
  * @param {String} sign 窗口标记
  */
 export function closeWin(sign: string): Promise<boolean> {
+    logger.info('尝试关闭窗口');
     return new Promise((resolve, reject) => {
         if(AppControl.isExitAppTask){
             logger.info('退出任务中,不允许关闭窗口');
@@ -304,7 +305,7 @@ async function _tryCloseMain(mainWinObj: AppWindow) : Promise<[Error | null, boo
     // if(res){
     //     if(res.action === 'ok'){
     //         logger.info('确认关闭窗口');
-    //         exit();
+    await AppControl.exit();
     //     }else if(res.action === 'cancel'){
     //         logger.info('隐藏窗口');
     //         // 隐藏窗口

@@ -11,7 +11,7 @@ let mainWindow: AppWindow | null;
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
-let logger = Logger.logger('background.js', 'info');
+let logger = Logger.logger('mainEntry', 'info');
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
     logger.info("[fc-ele] 应用已经启动");

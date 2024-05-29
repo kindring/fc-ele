@@ -1,16 +1,17 @@
-import {app} from "electron";
+// import {app} from "electron";
 import Path from "path";
 
 import Logger from '../util/logger';
 import fs from "fs";
 import path from "path";
 import {AppConfig} from "@/types/appConfig.ts";
+import {getUserHomePath} from "@/util/pathTool.ts";
 
 
 let logger = Logger.logger('config', 'info');
-const appPath = app.isPackaged ? Path.dirname(app.getPath('exe')) : app.getAppPath();
-
-const configPath = Path.resolve( appPath,`configs/fc-ele.json`);
+// const appPath = app.isPackaged ? Path.dirname(app.getPath('exe')) : app.getAppPath();
+let userPath = getUserHomePath();
+const configPath = Path.resolve( userPath,`configs/fc-ele.json`);
 logger.info(`[config app] configPath: ${configPath}`);
 
 const defaultConfig : AppConfig = {
