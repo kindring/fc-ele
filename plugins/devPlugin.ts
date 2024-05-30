@@ -31,11 +31,12 @@ export let devPlugin = () => {
             server.httpServer?.once("listening", () => {
                 let { spawn } = require("child_process");
                 let addressInfo = server.httpServer?.address() as any;
-                // console.log(server);
-                // console.log(addressInfo);
-
+                console.log(server);
+                console.log(addressInfo);
+                if (addressInfo.address == "0.0.0.0"){
+                    addressInfo.address = "127.0.0.1"
+                }
                 let httpAddress = `http://${addressInfo.address}:${addressInfo.port}`;
-
                 let electronProcess = spawn(require("electron").toString(), ["./dist/mainEntry.js", httpAddress], {
                     cwd: process.cwd(),
                     stdio: "inherit",
