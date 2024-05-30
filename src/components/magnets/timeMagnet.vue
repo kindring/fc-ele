@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {defineComponent, ref} from "vue";
+import {defineComponent, ref, watch} from "vue";
 // import {MagnetSize} from "@/types/magnetType.ts";
 import {Calendar, getCalendar, getCalendarByWeek, LUNAR_INFO, timeFormat} from "@/util/time.ts";
 import {computeStyle, timeMagnetInfo} from "@/components/magnets/magnetInfo.ts";
@@ -45,13 +45,23 @@ const yearStr = ref(timeFormat(new Date(), yearFormat));
 const weekDays = LUNAR_INFO.WEEK_DAY_SHORT;
 
 
-const calendar = ref(getCalendar(new Date()))
+const calendar = ref(calendarBuild())
 const calendarIndex = ref(-1);
-// 生成日历
-if (props.size === MagnetSize.small){
-  // 获取 7 天的日历
-  calendar.value = getCalendarByWeek(new Date())
+
+function calendarBuild()
+{
+  if (props.size === MagnetSize.small){
+    // 获取 7 天的日历
+    return getCalendarByWeek(new Date())
+  }
+  return getCalendar(new Date())
 }
+
+
+watch(yearStr, (_) => {
+  console.log(" 年份改变")
+  calendar.value = calendarBuild()
+})
 
 
 
@@ -59,6 +69,7 @@ if (props.size === MagnetSize.small){
 function updateTime(){
   setTimeout(()=>{
     let newDate = new Date()
+    // 判断是否跨天
     hourStr.value = timeFormat(newDate, hourFormat)
     yearStr.value = timeFormat(newDate, yearFormat)
     updateTime()
