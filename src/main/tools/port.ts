@@ -13,12 +13,14 @@ export async function portIsOccupied(port: number) : Promise<number> {
             resolve(port);
         })
 
-        server.on('error', (err: Error) => {
-            if (err.name === 'EADDRINUSE') {
+        server.on('error', (err: any) => {
+            if (err.code === 'EADDRINUSE') {
                 // 端口已经被使用
                 resolve(-1);
             } else {
                 // 未知异常
+                console.log(err)
+                console.log(err.name)
                 reject(err)
             }
         });
@@ -46,6 +48,7 @@ getAvailablePort<T>(port: number = 3000, maxTry: number = 100): Promise<[Error |
             }
             rPort += 1;
             tryCount += 1;
+            console.log(rPort)
             if( maxTry >= 0 && tryCount >= maxTry && rPort > 65535){
                 return [null,-1];
             }

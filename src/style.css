@@ -80,6 +80,9 @@
   /*box-size: border-box;*/
   margin: 0;
   padding: 0;
+  /* 禁止 拖拽元素 */
+  -webkit-user-drag: none;
+  user-select:none;
 }
 html , body{
   font-size: 16px;

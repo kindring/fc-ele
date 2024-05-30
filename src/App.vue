@@ -5,6 +5,7 @@ import {onMounted, ref} from "vue";
 import MacWindow from "./components/window/macWindow.vue";
 import MagnetView from "./components/magnetView.vue";
 import AppleBar from "@/components/appleBar/appleBar.vue";
+import BarIconBtn from "@/components/appleBar/barIconBtn.vue";
 import SettingView from "@/components/settingView.vue";
 import {NavItem} from "@/components/appleBar/appleBar.ts";
 
@@ -37,7 +38,15 @@ let navItems:NavItem[] = [
 
 const title = ref("fc-ele");
 const pageKey = ref(homePageKey);
+const editMode = ref(false);
+function editModeChange() {
+  editMode.value = !editMode.value;
+}
+
 const navAction = (actionCode:string) => {
+  if(editMode){
+    return console.log('is edit mode')
+  }
   console.log(`action: ${actionCode}`);
   // 寻找actionCode对应的 index
   let index = navItems.findIndex((item) => item.actionCode === actionCode);
@@ -75,7 +84,9 @@ const navAction = (actionCode:string) => {
     <Transition :name="transitionName">
       <div class="full" v-if="pageKey === homePageKey">
         <div class="app-content">
-          <magnet-view/>
+          <magnet-view
+              :edit-mode="editMode"
+          />
         </div>
       </div>
       <setting-view v-else-if="pageKey === settingPageKey"></setting-view>
@@ -87,7 +98,14 @@ const navAction = (actionCode:string) => {
           :active="pageKey"
           :hide-time="3000"
           @action="navAction"
-      ></apple-bar>
+      >
+        <bar-icon-btn
+            icon-name="edit"
+            :active="editMode"
+            @click.native="editModeChange"
+        >
+        </bar-icon-btn>
+      </apple-bar>
     </div>
 
   </mac-window>

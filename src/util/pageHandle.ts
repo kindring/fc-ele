@@ -1,19 +1,19 @@
 import {App} from "vue";
 
-import {ipcRenderer} from "electron";
+// import {ipcRenderer} from "electron";
 import {IpcAction, windowAction} from "../tools/IpcCmd.ts";
 import {registerWindowData} from "../types/appConfig.ts";
 
 // 判断是否为 webMode
 
-// const ipcRenderer = {
-//     on: (code: string, _: Function)=>{
-//         console.log(code)
-//     },
-//     send: (code: string, data: any)=>{
-//         console.log(code, data)
-//     },
-// };
+const ipcRenderer = {
+    on: (code: string, _: Function)=>{
+        console.log(code)
+    },
+    send: (code: string, data: any)=>{
+        console.log(code, data)
+    },
+};
 
 function winHandle(ipc: Electron.IpcRenderer, windowName: string, action: IpcAction): boolean{
     let sendCode = action.code;

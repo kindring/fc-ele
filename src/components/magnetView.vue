@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { shallowRef} from "vue";
+import TimeMagnet from "@/components/magnets/timeMagnet.vue";
+import vueDrag from "@/components/public/vueDrag.vue";
 import {Magnet, MagnetEmit, MagnetSize} from "@/types/magnetType.ts";
 import {computeMagnetStyle, initTimeMagnetInfo} from "@/components/magnets/magnetInfo.ts";
 
-import TimeMagnet from "@/components/magnets/timeMagnet.vue";
 import {Calendar} from "@/util/time.ts";
 
 const timeMagnetInfo = initTimeMagnetInfo(TimeMagnet)
@@ -56,27 +57,35 @@ function eventHandler(magnetEmit: MagnetEmit<any>){
   }
 }
 
+defineProps({
+  editMode: {
+    type: Boolean,
+    default: false
+  }
+})
+
 
 
 </script>
 
 <template>
-<!-- 磁帖 布局组件, -->
-<div class="magnet scroll">
-  <!--    磁贴组件布局 -->
-  <div class="magnet-item"
+  <!-- 磁帖 布局组件, -->
+  <div class="magnet scroll">
+    <!--    磁贴组件布局 -->
+
+    <vue-drag class="magnet-item"
        v-for="magnet in magnetItems"
        :key="magnet.id"
        :style="computeMagnetStyle(magnet)"
-  >
-    <div class="magnet-item-bg"></div>
-    <component
-        :is="magnet.component"
-        :size="magnet.size"
-        @magnet="eventHandler"
-    ></component>
+       :open-drag="editMode"
+    >
+      <component
+          :is="magnet.component"
+          :size="magnet.size"
+          @magnet="eventHandler"
+      ></component>
+    </vue-drag>
   </div>
-</div>
 </template>
 
 <style scoped>
@@ -86,7 +95,6 @@ function eventHandler(magnetEmit: MagnetEmit<any>){
   display: flex;
   position: relative;
   overflow-y: auto;
-  padding-bottom: 60px;
 }
 
 
