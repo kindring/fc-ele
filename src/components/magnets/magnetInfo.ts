@@ -44,6 +44,8 @@ export function computeMagnetStyle(magnet: Magnet) {
 }
 
 
+
+
 export function computeStyle(w: number, h: number, x: number, y: number, sub: boolean = false) {
     let _w = cellWidth * w + (cellMargin * w - cellMargin);
     let _h = cellWidth * h + (cellMargin * h  - cellMargin);
@@ -70,6 +72,12 @@ export function comXY(left: number, top: number){
     let x = Math.floor(left / (cellWidth + cellMargin));
     let y = Math.floor(top / (cellWidth + cellMargin));
     return {x, y}
+}
+
+export function comMaxWidth(width: number){
+    let w = Math.floor(width / (cellWidth + cellMargin));
+    console.log(`width: ${width} w: ${w}`)
+    return w
 }
 
 
