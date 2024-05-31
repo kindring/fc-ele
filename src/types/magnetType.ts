@@ -35,6 +35,8 @@ export interface Magnet {
     editMode: boolean,
     // 磁贴是否被选中, 用于判断是否可以拖动
     selected: boolean,
+    // 磁贴是否被改变, 用于判断是否需要保存
+    changed: boolean,
 
 }
 

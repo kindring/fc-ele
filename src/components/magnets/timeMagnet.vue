@@ -133,7 +133,7 @@ function selectDay(calendarItem:  Calendar, index: number){
 
 <style scoped>
 .time-box {
-  border-radius: 5px;
+  border-radius: 6px;
   box-sizing: border-box;
   padding: 5px;
 }

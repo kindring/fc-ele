@@ -42,6 +42,7 @@ function getElementDistanceToViewportEdge(element: HTMLElement): { top: number, 
     const rect = element.getBoundingClientRect();
     const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    // 兼容性处理
     const scrollX = window.scrollX || window.pageXOffset || document.documentElement.scrollLeft;
     const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
 
@@ -76,10 +77,10 @@ function comMouseInfo(mouseInfo: MouseInfo, el?: HTMLElement | null): MouseInfo{
     return mouseInfo;
 }
 
-enum CollisionDirection {
+export enum CollisionDirection {
     None = 0,
     Top = 1,
-    Bottom = 2,
+    Down = 2,
     Left = 3,
     Right = 4
 }
@@ -104,7 +105,7 @@ export function detectCollisionDirection(rect1: Rect, rect2: Rect): CollisionRes
         if (horizontalOverlap > verticalOverlap) {
             return {
                 colliding: true,
-                direction: rect1.y < rect2.y ? CollisionDirection.Top : CollisionDirection.Bottom
+                direction: rect1.y < rect2.y ? CollisionDirection.Top : CollisionDirection.Down
             };
         } else {
             return {
@@ -119,30 +120,16 @@ export function detectCollisionDirection(rect1: Rect, rect2: Rect): CollisionRes
 
 
 
-export function isColliding(rect1: Rect, rect2: Rect): boolean {
-    if (rect1.x < rect2.x + rect2.width &&
-        rect1.x + rect1.width > rect2.x &&
-        rect1.y < rect2.y + rect2.height &&
-        rect1.y + rect1.height > rect2.y) {
-        return true;
-    } else {
-        return false;
-    }
-}
 
 export class Drag{
-    constructor(el: HTMLElement, moveWait: number = 60) {
+    constructor(el: HTMLElement) {
         // 绑定事件
         this.el = el;
-        this.moveWait = moveWait;
         this.bindEvent();
     }
     el: HTMLElement;
     isMove: boolean = false;
     // 延迟时间, 同一时间内的合并为同一
-    moveWait: number;
-    // 计时器
-    waitTimer: NodeJS.Timeout | null = null ;
     parent: ElementInfo = {
         el: null,
         left: 0,

@@ -86,6 +86,7 @@ const navAction = (actionCode:string) => {
         <div class="app-content">
           <magnet-view
               :edit-mode="editMode"
+              @edit-mode-change="editModeChange"
           />
         </div>
       </div>

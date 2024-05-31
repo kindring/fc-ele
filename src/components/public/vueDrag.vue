@@ -30,6 +30,7 @@ const props = defineProps({
 })
 
 const emits = defineEmits<{
+  (e: 'init', drag: Drag ): void,
   (e: 'move-start', moveInfo: MoveInfo ): void,
   (e: 'move', moveInfo: MoveInfo ): void,
   (e: 'move-end', moveInfo: MoveInfo ): void,
@@ -47,9 +48,10 @@ function initDrag() {
   drag.on(Drag.Event.moveStart, moveStartHandle)
   drag.on(Drag.Event.move, moveHandle)
   drag.on(Drag.Event.moveEnd, moveEndHandle)
+  emits('init', drag)
 }
 function unDrag(){
-  if (!drag) return console.error('dragElement is null !!!!!!!!!! ')
+  if (!drag) return console.error('drag is null !!!!!!!!!! ')
   drag.off(Drag.Event.moveStart)
   drag.off(Drag.Event.move)
   drag.off(Drag.Event.moveEnd)
@@ -116,9 +118,13 @@ function _setDomStyle(el: HTMLElement, mouseInfo: MouseInfo, dragInfo: ElementIn
   el.style.left = `${elLeft}px`;
   el.style.top = `${elTop}px`;
 
+
   if (isEnd)
   {
     el.style.transition = "all 0.3s";
+  }else{
+    // 移除transition
+    el.style.transition = "none";
   }
 
   let moveInfo = {
@@ -126,7 +132,6 @@ function _setDomStyle(el: HTMLElement, mouseInfo: MouseInfo, dragInfo: ElementIn
     left: elLeft,
     top: elTop
   };
-
   return moveInfo;
 }
 
