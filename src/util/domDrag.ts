@@ -1,3 +1,27 @@
+
+export interface ElementInfo{
+    el: HTMLElement | null;
+    left: number;
+    top: number;
+    parentLeft: number;
+    parentTop: number;
+    width: number;
+    height: number;
+    // 鼠标点击位置与元素位置的差值
+    diffX: number;
+    diffY: number;
+
+}
+
+export interface MouseInfo{
+    x: number;
+    y: number;
+}
+
+export interface MouseListener{
+    (mouse: MouseInfo, el: ElementInfo): void;
+}
+
 // 元素拖动
 function getElementLeft(el: HTMLElement): number{
     let left = el.offsetLeft || 0;
@@ -25,34 +49,87 @@ function getElementDistanceToViewportEdge(element: HTMLElement): { top: number, 
     const right = viewportWidth - rect.right + scrollX;
     const bottom = viewportHeight - rect.bottom + scrollY;
     const left = rect.left - scrollX;
-
     return { top, right, bottom, left };
 }
-
-
-
-export interface ElementInfo{
-    el: HTMLElement | null;
-    left: number;
-    top: number;
-    parentLeft: number;
-    parentTop: number;
-    width: number;
-    height: number;
-    // 鼠标点击位置与元素位置的差值
-    diffX: number;
-    diffY: number;
-
+// 获取元素滚动条位置
+function getScrollLeft(el: HTMLElement): number{
+    return el.scrollLeft || 0;
+}
+function getScrollTop(el: HTMLElement): number{
+    return el.scrollTop || 0;
 }
 
-export interface MouseInfo{
+/**
+ * 鼠标位置基于滚动条偏移
+ * @param mouseInfo 直接修改此对象
+ * @param el
+ */
+function comMouseInfo(mouseInfo: MouseInfo, el?: HTMLElement | null): MouseInfo{
+    // 父元素有滚动条的情况下，需要减去滚动条的偏移量
+    if (el) {
+        const scrollX = getScrollLeft(el);
+        const scrollY = getScrollTop(el);
+        // console.log(`scrollX: ${scrollX} scrollY: ${scrollY}`);
+        mouseInfo.x += scrollX;
+        mouseInfo.y += scrollY;
+    }
+    return mouseInfo;
+}
+
+enum CollisionDirection {
+    None = 0,
+    Top = 1,
+    Bottom = 2,
+    Left = 3,
+    Right = 4
+}
+
+export interface CollisionResult {
+    colliding: boolean;
+    direction: CollisionDirection;
+}
+
+export interface Rect {
     x: number;
     y: number;
+    width: number;
+    height: number;
 }
 
-export interface MouseListener{
-    (mouse: MouseInfo, el: ElementInfo): void;
+export function detectCollisionDirection(rect1: Rect, rect2: Rect): CollisionResult {
+    const horizontalOverlap = Math.min(rect1.x + rect1.width, rect2.x + rect2.width) - Math.max(rect1.x, rect2.x);
+    const verticalOverlap = Math.min(rect1.y + rect1.height, rect2.y + rect2.height) - Math.max(rect1.y, rect2.y);
+
+    if (horizontalOverlap > 0 && verticalOverlap > 0) {
+        if (horizontalOverlap > verticalOverlap) {
+            return {
+                colliding: true,
+                direction: rect1.y < rect2.y ? CollisionDirection.Top : CollisionDirection.Bottom
+            };
+        } else {
+            return {
+                colliding: true,
+                direction: rect1.x < rect2.x ? CollisionDirection.Left : CollisionDirection.Right
+            };
+        }
+    }
+
+    return { colliding: false, direction: CollisionDirection.None };
 }
+
+
+
+export function isColliding(rect1: Rect, rect2: Rect): boolean {
+    if (rect1.x < rect2.x + rect2.width &&
+        rect1.x + rect1.width > rect2.x &&
+        rect1.y < rect2.y + rect2.height &&
+        rect1.y + rect1.height > rect2.y) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 export class Drag{
     constructor(el: HTMLElement, moveWait: number = 60) {
         // 绑定事件
@@ -101,13 +178,13 @@ export class Drag{
     //
     private bindEvent() {
         const el = this.el;
-        el.addEventListener('mousedown', this.downEvent);
+        el.addEventListener('mousedown', this.downEvent)
+        // todo 触摸支持
         let parent = el.parentElement;
         if (!parent) {
             parent = document.body;
         }
         const parentDistance = getElementDistanceToViewportEdge(parent);
-        const distance = getElementDistanceToViewportEdge(el);
         this.parent = {
             el: parent,
             left: parentDistance.left,
@@ -132,10 +209,6 @@ export class Drag{
         }
 
 
-        console.log('Distance to top:', distance.top);
-        console.log('Distance to right:', distance.right);
-        console.log('Distance to bottom:', distance.bottom);
-        console.log('Distance to left:', distance.left);
     }
     downEvent = (e: MouseEvent) => {
         if(this.isMove){
@@ -144,24 +217,15 @@ export class Drag{
         // 获取鼠标位置
         const x = e.clientX;
         const y = e.clientY;
-        let el = this.el;
         this.isMove = true;
-
-        console.log(el);
-        // 获取元素再页面上的位置
-        const left = getElementLeft(el);
-        const top = getElementTop(el);
-        let parentLeft = 0;
-        let parentTop = 0;
-
-
-        console.log(left, top)
-        console.log(parentLeft, parentTop)
 
         // 计算元素偏移差值
         const diffX = e.offsetX;
         const diffY =  e.offsetY;
-
+        let mouseInfo: MouseInfo = {
+            x: x,
+            y: y
+        }
         this.startX = x;
         this.startY = y;
 
@@ -170,15 +234,14 @@ export class Drag{
             diffX: diffX,
             diffY: diffY
         }
+
         if (this.parent.el) {
             const parentDistance = getElementDistanceToViewportEdge(this.parent.el)
             this.thisInfo.parentTop = parentDistance.top
             this.thisInfo.parentLeft = parentDistance.left
+            comMouseInfo(mouseInfo, this.parent.el);
         }
-        let mouseInfo: MouseInfo = {
-            x: x,
-            y: y
-        }
+
         this.moveStart && this.moveStart(mouseInfo, this.thisInfo);
         setTimeout(()=>{
             document.addEventListener('mousemove', this.mouseMove);
@@ -192,7 +255,6 @@ export class Drag{
         // 获取鼠标位置
         const x = e.clientX;
         const y = e.clientY;
-        console.log(`mouse up event x: ${x} y: ${y}`)
         let mouseInfo: MouseInfo = {
             x: x,
             y: y
@@ -209,13 +271,13 @@ export class Drag{
             return
         }
         // 获取鼠标位置
-        const x = e.clientX;
-        const y = e.clientY;
-        console.log(`mouse move event x: ${x} y: ${y}`)
+        const x = e.pageX;
+        const y = e.pageY;
         let mouseInfo: MouseInfo = {
             x: x,
             y: y
         }
+        comMouseInfo(mouseInfo, this.parent.el);
         this.move && this.move(mouseInfo, this.thisInfo);
     }
 

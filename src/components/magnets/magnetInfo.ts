@@ -65,7 +65,12 @@ export function computeStyle(w: number, h: number, x: number, y: number, sub: bo
     }
 }
 
-
+// 通过元素位置反向计算xy值
+export function comXY(left: number, top: number){
+    let x = Math.floor(left / (cellWidth + cellMargin));
+    let y = Math.floor(top / (cellWidth + cellMargin));
+    return {x, y}
+}
 
 
 
