@@ -45,7 +45,7 @@ function tryBindWindow(ipc: Electron.IpcRenderer, type: string): (action: IpcAct
 /**
  * 初始化页面 挂载$winHandle为全局函数. 操作窗口
  * @param app
- *
+ * @param type 窗口类型 用于前端反向绑定主进程
  */
 export function windowInit(app: App, type: string){
     // 先将验证窗口绑定到全局, 接收到 绑定消息后再进行绑定

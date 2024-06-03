@@ -143,8 +143,7 @@ function getChineseWeek(date: Date): number {
  * @param date
  */
 function getMonthDays(date: Date): number {
-    const days = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-    return days;
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 }
 
 
@@ -185,12 +184,11 @@ function calendarGetNextMonth(calendar: Calendar): Calendar
         nextMonth = 1;
         nextYear++;
     }
-    let newCalendar: Calendar = {
+    return {
         ...calendar,
         month: nextMonth,
         year: nextYear
-    }
-    return newCalendar;
+    };
 }
 
 function calendarGetPrevMonth(calendar: Calendar): Calendar
@@ -202,18 +200,16 @@ function calendarGetPrevMonth(calendar: Calendar): Calendar
         prevMonth = 12;
         prevYear--;
     }
-    let newCalendar: Calendar = {
+    return {
         ...calendar,
         month: prevMonth,
         year: prevYear
-    }
-    return newCalendar;
+    };
 }
 
 /**
  * 获取指定日期的日历列表
  * @param time
- * @param isWeek
  */
 export function getCalendar(time: Date): Calendar[] {
     const calendar: Calendar = dateToCalendar(time);
@@ -226,10 +222,13 @@ export function getCalendar(time: Date): Calendar[] {
     {
         // 计算前一个月的天数
         let lastCalendar = calendarGetPrevMonth(calendar);
+        console.log(lastCalendar)
         let daysInLastMonth = getMonthDaysInfo(lastCalendar.year, lastCalendar.month);
         // 获取前一个月的后几天
         for(let i = 1; i < firstDayWeek; i++)
         {
+
+            console.log(`i: ${i} => ${daysInLastMonth.length - i}`)
             // 获取上一个月的最后几天
             let lastDay = daysInLastMonth[daysInLastMonth.length - i];
             lastDay.isLast = true;
@@ -254,7 +253,7 @@ export function getCalendar(time: Date): Calendar[] {
 function dateToCalendar(date: Date): Calendar {
     let nowDate = new Date();
     let isToday = date.getFullYear() === nowDate.getFullYear() && date.getMonth() === nowDate.getMonth() && date.getDate() === nowDate.getDate();
-    let calendar:Calendar = {
+    return {
         year: date.getFullYear(),
         month: date.getMonth() + 1,
         day: date.getDate(),
@@ -263,7 +262,6 @@ function dateToCalendar(date: Date): Calendar {
         isLast: false,
         isNext: false,
     };
-    return calendar;
 }
 
 export function getCalendarByWeek(time: Date, expand: boolean = false): Calendar[] {
@@ -274,11 +272,16 @@ export function getCalendarByWeek(time: Date, expand: boolean = false): Calendar
         // 获取前一个月的天数
         let lastCalendar = calendarGetPrevMonth(calendar);
         let daysInLastMonth = getMonthDaysInfo(lastCalendar.year, lastCalendar.month);
-        let len = expand ? daysInLastMonth.length : calendar.day - 1 ;
-        for (let i = 0; i < len; i++) {
-            daysInLastMonth[daysInLastMonth.length - i].isLast = true;
-            calendars.unshift(daysInLastMonth[daysInLastMonth.length - i]);
+        // 获取当月第一天的星期
+        let len = expand ? daysInLastMonth.length : calendars[0].week;
+        console.log(len);
+        for (let i = 1; i < len; i++) {
+            let lastDay = daysInLastMonth[daysInLastMonth.length - i];
+            console.log(`i: ${i} ${daysInLastMonth.length - i}  ${lastDay.month}月${lastDay.day}日`)
+            lastDay.isLast = true;
+            calendars.unshift(lastDay);
         }
+        console.log(calendars)
     }
     if (calendar.day >= 22) {
         // 获取下一个月的天数
