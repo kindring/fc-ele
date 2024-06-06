@@ -84,6 +84,12 @@ export const actionMap: { [key: string]: IpcAction } = {
         icon: 'query',
         code: 'questionUser',
         resCode: 'userAnswer'
+    },
+    apiControl: {
+        title: 'api调用',
+        icon: 'api',
+        code: 'apiControl',
+        resCode: 'apiControl_replay'
     }
 }
 

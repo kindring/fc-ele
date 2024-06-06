@@ -1,8 +1,9 @@
 import {App} from "vue";
 
 import {ipcRenderer} from "electron";
-import {IpcAction, windowAction} from "../tools/IpcCmd.ts";
+import {actionMap, IpcAction, windowAction} from "../tools/IpcCmd.ts";
 import {registerWindowData} from "../types/appConfig.ts";
+import baseApi from "@/apis/baseApi.ts";
 
 // 判断是否为 webMode
 
@@ -50,6 +51,13 @@ function tryBindWindow(ipc: Electron.IpcRenderer, type: string): (action: IpcAct
 export function windowInit(app: App, type: string){
     // 先将验证窗口绑定到全局, 接收到 绑定消息后再进行绑定
     app.config.globalProperties.$winHandle = tryBindWindow(ipcRenderer, type)
+    // 初始化api调用函数. 用于统一调用
+    baseApi.init(type,
+        ipcRenderer.send,
+        ipcRenderer.on,
+        actionMap.apiControl.code,
+        actionMap.apiControl.resCode);
+
     ipcRenderer.on(
     windowAction.bindSignId.code,
     (_: Electron.IpcRendererEvent , data: registerWindowData)=>

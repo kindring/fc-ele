@@ -1,0 +1,358 @@
+/**
+ * 返回基础api的请求函数, 用于封装请求. 用于同时支持浏览器和electron环境
+ */
+import {ApiType, ErrorCode, NotifyData, RequestData, ResponseData} from "@/types/apiTypes.ts";
+import {randomId} from "@/util/random.ts";
+import {ipcRenderer} from "electron";
+import {actionMap} from "@/tools/IpcCmd.ts";
+
+interface CallItem {
+    callId: string;
+    action: string;
+    resolve: (value: ResponseData) => void;
+    reject: (reason: any) => void;
+    endTime: number;
+    // 是否在初始化前尝试发送
+    isInit: boolean;
+}
+interface Calls {
+    [key: string]: CallItem;
+}
+
+interface NotifyItem {
+    action: string;
+    handlers: {
+        [key: string]:{
+            callback: (params: any) => void;
+            isOnce: boolean;
+        }
+    }
+}
+interface NotifyMap {
+    [key: string]: NotifyItem;
+}
+
+// 定义send函数的数据类型
+export type SendFunction = (channel: string,     ...args: any[])=> void
+
+export type ListenerFunction = (channel: string, listener: (event: any, ...args: any[]) => void) => void
+
+
+
+class ApiController {
+    sign = ''
+    calls: Calls = {}
+    notifyMap: NotifyMap = {}
+    // 最近的一个过期时间
+    lastCheckTime = 0
+    // 最近的过期检测id
+    lastCheckId: string = ""
+    checkTimer: NodeJS.Timeout | null = null
+    // 下一次检测的间隔时间
+    checkInterval = 100
+    isInit: boolean = false
+    // init 前尝试发送的数据
+    sendTasks: RequestData[] = []
+    // init 前尝试取消的发送
+    cancelTasks: string[] = []
+    sendCallback: SendFunction | null = null;
+    sendKey: string = ""
+    listenerKey: string = ""
+    listenerCallback: ListenerFunction | null = null;
+    logFn: (...args: any[]) => void = console.log
+    constructor() {
+    }
+    init(sign: string, sendCallback: SendFunction, listenerCallback: ListenerFunction, sendKey: string, listerKey: string){
+        this.isInit = true
+        this.sign = sign
+        this.sendCallback = sendCallback
+        this.listenerCallback = listenerCallback
+        this.sendKey = sendKey
+        this.listenerKey = listerKey
+        this.listenerCallback(listerKey, this.apiControllerHandler)
+        this.sendTasks.forEach(requestData => {
+            sendCallback(sendKey, requestData)
+            this.refreshTimeout(requestData.callId, requestData.timeout)
+        })
+        this.cancelTasks.forEach(callId => {
+            this.cancelQuery(callId)
+        })
+    }
+    setLogFn(logFn: (...args: any[]) => void){
+        this.logFn = logFn
+    }
+    /**
+     * 构建新的callId
+     */
+    private buildCallId( deep: number = 0) : string {
+        let callId = randomId()
+        if(!this.calls[callId]){
+            return callId
+        }
+        if(deep > 10){
+            return `${callId}${deep}${randomId()}`
+        }
+        return this.buildCallId(deep++)
+    }
+    /**
+     * 构建新的notifyId
+     */
+    private buildNotifyId(action: string, deep: number = 0) : string {
+        let notifyId = randomId()
+        if(!this.notifyMap[action] || !this.notifyMap[action].handlers[notifyId]){
+            return notifyId
+        }
+        if(deep > 10){
+            return `${notifyId}${deep}${randomId()}`
+        }
+        return this.buildNotifyId(action)
+    }
+    private apiControllerHandler(_:any, data: ResponseData | NotifyData)
+    {
+        switch(data.type){
+            case ApiType.res:
+                if(this.calls[data.callId]){
+                    this.callResponseHandle(this.calls[data.callId], data)
+                }
+                break;
+            case ApiType.notify:
+                if(this.notifyMap[data.action])
+                {
+                    this.notifyHandle(this.notifyMap[data.action], data)
+                }
+                break;
+        }
+    }
+    private callResponseHandle(call: CallItem, responseData: ResponseData){
+        if( this.lastCheckId === call.callId){
+            // 取消检测当前函数的定时器, 防止多次触发
+            if(this.checkTimer){
+                clearTimeout(this.checkTimer)
+            }
+            this.checkTimer = null
+            this.lastCheckId = "";
+            this.lastCheckTime = 0;
+
+        }
+        // 执行回调
+        call.resolve(responseData)
+        // 从队列中删除
+        delete this.calls[call.callId]
+        this.findNextTimeoutCall()
+    }
+    private notifyHandle(notify: NotifyItem, data: NotifyData) {
+        for (const notifyHandleId in notify.handlers) {
+            let notifyHandle = notify.handlers[notifyHandleId]
+            notifyHandle.callback(data)
+            if(notifyHandle.isOnce){
+                delete notify.handlers[notifyHandleId]
+            }
+        }
+    }
+
+
+    private startTimeoutCheck(callId: string){
+        // 获取当前的时间戳
+        let nowTimeStamp = Date.now()
+        // 获取对应call的超时时间
+        let callItem = this.calls[callId]
+        if (!callItem)
+        {
+            return this.logFn(`[E] startTimeoutCheck: ${callId} not found`)
+        }
+
+        let timeWait = callItem.endTime - nowTimeStamp - this.checkInterval
+        // 在已经有一个超时检查的情况下, 判断新的超时时间是否小于当前正在执行的超时时间. 用于将计时器更新为最新的
+        if(this.lastCheckId && callId !== this.lastCheckId){
+            if(callItem.endTime < this.lastCheckTime){
+                this.lastCheckTime = callItem.endTime
+                this.lastCheckId = callId
+                // 取消计时器
+                if(this.checkTimer)
+                {
+                    clearTimeout(this.checkTimer)
+                    this.checkTimer = null
+                }
+                // 获取
+                this.checkTimer = setTimeout(() => {
+                    this.checkTimeout()
+                }, timeWait)
+            }
+            return;
+        }
+        this.lastCheckTime = callItem.endTime
+        this.lastCheckId = callId
+        if(timeWait > 0){
+            
+            this.checkTimer = setTimeout(() => {
+                this.checkTimeout()
+            }, timeWait)
+        }
+        if(timeWait <= 0){
+            // 立即执行
+            this.checkTimeout()
+        }
+    }
+    // 超时检查
+    private checkTimeout() {
+        let callItem = this.calls[this.lastCheckId]
+        if(!callItem || callItem.endTime != -1){
+            // 尝试获取calls中获取到期时间最小的一个请求
+            this.logFn(`[W] checkTimeout: ${this.lastCheckId} not supported check timeoutDate: ${callItem?.endTime}`)
+            return this.findNextTimeoutCall()
+        }
+        let nowTimeStamp = Date.now()
+        if (callItem.endTime > nowTimeStamp){
+            this.callTimeoutHandle(callItem)
+        }
+        // 暂未超时,
+        this.startTimeoutCheck(this.lastCheckId)
+    }
+    private callTimeoutHandle(callItem: CallItem)
+    {
+        // 移除超时检查
+        this.lastCheckTime = 0;
+        this.lastCheckId = "";
+        this.callResponseHandle(callItem, {
+            type: ApiType.res,
+            action: callItem.action,
+            callId: callItem.callId,
+            code: ErrorCode.timeout,
+            msg: '等待api响应数据超时!',
+            data: null,
+        })
+        // 寻找下一个超时检查项
+        this.findNextTimeoutCall()
+    }
+    private findNextTimeoutCall()
+    {
+        // 遍历请求,
+        for(let callId in this.calls){
+            let callItem = this.calls[callId]
+            if (callItem.endTime === -1){
+                continue;
+            }
+            this.lastCheckTime = callItem.endTime;
+            this.lastCheckId = callId;
+            if(callItem.endTime < this.lastCheckTime){
+                this.lastCheckTime = callItem.endTime
+                this.lastCheckId = callId
+            }
+        }
+        if(this.lastCheckId !== ""){
+            this.startTimeoutCheck(this.lastCheckId)
+        }else{
+            // 没有找到超时检查项, 则取消计时器
+        }
+    }
+    // 刷新超时时间
+    refreshTimeout(callId: string, timeout: number) {
+        let callItem = this.calls[callId]
+        if(!callItem){
+            return this.logFn(`[E] refreshTimeout: ${callId} not found`)
+        }
+        callItem.endTime = Date.now() + timeout
+        this.startTimeoutCheck(callId)
+    }
+
+    /**
+     * 修改当前总api的签名
+     * @param sign
+     */
+    changeSign(sign: string) {
+        this.sign = sign
+    }
+
+    /**
+     * 调用ipc 获取数据
+     * @param action
+     * @param params
+     * @param timeout
+     */
+    sendQuery(action: string, params: any, timeout: number = 5000) {
+        let callId = this.buildCallId()
+        let requestData: RequestData = {
+            type: ApiType.req,
+            action: action,
+            data: params,
+            callId: callId,
+            timeout: timeout,
+        }
+        if(this.isInit){
+            if (this.sendCallback){
+                this.sendCallback(this.sendKey, requestData)
+            }else {
+                this.logFn(`[E] sendQuery: ${action} not init data`)
+            }
+        }else{
+            this.sendTasks.push(requestData)
+        }
+
+        // 获取当前的时间戳
+        let timeStamp = Date.now()
+        // 加上通信超时时间
+        let endTime = timeStamp +  + 200
+        // 如果是-1, 则表示不设置超时时间, 永久等待检测
+        if(timeout === -1){
+            endTime = -1
+        }else{
+            if(this.isInit){
+                this.startTimeoutCheck(callId)
+            }else{
+                this.logFn(`!!!Try calling the send function before initializing`)
+            }
+        }
+        return new Promise((resolve, reject) => {
+            this.calls[callId] = {
+                action: action,
+                callId: callId,
+                resolve: resolve,
+                reject: reject,
+                endTime: endTime,
+                isInit: !this.isInit,
+            }
+        })
+    }
+    registerNotify(action: string, isOnce: boolean = false, callback: (params: any) => void): string {
+        if (!this.notifyMap[action]) {
+            // 初始化 notify 对象
+            this.notifyMap[action] = {
+                action: action,
+                handlers: {},
+            }
+        }
+        let callId = this.buildNotifyId(action)
+        this.notifyMap[action].handlers[callId] = {
+            callback: callback,
+            isOnce: isOnce,
+        }
+        return callId
+    }
+    // 取消方法
+    cancelQuery(callId: string) {
+        if(this.calls[callId]){
+
+            this.callResponseHandle(this.calls[callId], {
+                type: ApiType.res,
+                action: this.calls[callId].action,
+                callId: this.calls[callId].callId,
+                code: ErrorCode.cancel,
+                msg: '取消请求',
+                data: null,
+            })
+            delete this.calls[callId]
+        }
+    }
+    destroy() {
+        ipcRenderer.removeListener(actionMap.apiControllerHandler.code, this.apiControllerHandler)
+    }
+}
+
+
+// 使用单例模式创建ApiController
+let api: ApiController | null = null
+if(!api){
+    api = new ApiController()
+}
+export default api as ApiController
+
