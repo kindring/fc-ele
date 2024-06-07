@@ -3,8 +3,6 @@
  */
 import {ApiType, ErrorCode, NotifyData, RequestData, ResponseData} from "@/types/apiTypes.ts";
 import {randomId} from "@/util/random.ts";
-import {ipcRenderer} from "electron";
-import {actionMap} from "@/tools/IpcCmd.ts";
 
 interface CallItem {
     callId: string;
@@ -39,7 +37,7 @@ export type ListenerFunction = (channel: string, listener: (event: any, ...args:
 
 
 
-class ApiController {
+export class ApiController {
     sign = ''
     calls: Calls = {}
     notifyMap: NotifyMap = {}
@@ -48,8 +46,8 @@ class ApiController {
     // 最近的过期检测id
     lastCheckId: string = ""
     checkTimer: NodeJS.Timeout | null = null
-    // 下一次检测的间隔时间
-    checkInterval = 100
+    // 下一次检测的间隔时间, 毫秒
+    checkInterval = 10
     isInit: boolean = false
     // init 前尝试发送的数据
     sendTasks: RequestData[] = []
@@ -107,7 +105,7 @@ class ApiController {
         }
         return this.buildNotifyId(action)
     }
-    private apiControllerHandler(_:any, data: ResponseData | NotifyData)
+    private apiControllerHandler = (_:any, data: ResponseData | NotifyData) =>
     {
         switch(data.type){
             case ApiType.res:
@@ -123,7 +121,7 @@ class ApiController {
                 break;
         }
     }
-    private callResponseHandle(call: CallItem, responseData: ResponseData){
+    private callResponseHandle = (call: CallItem, responseData: ResponseData) => {
         if( this.lastCheckId === call.callId){
             // 取消检测当前函数的定时器, 防止多次触发
             if(this.checkTimer){
@@ -132,7 +130,6 @@ class ApiController {
             this.checkTimer = null
             this.lastCheckId = "";
             this.lastCheckTime = 0;
-
         }
         // 执行回调
         call.resolve(responseData)
@@ -162,6 +159,7 @@ class ApiController {
         }
 
         let timeWait = callItem.endTime - nowTimeStamp - this.checkInterval
+        console.log(`[I] startTimeoutCheck: ${callId} timeWait: ${timeWait}`)
         // 在已经有一个超时检查的情况下, 判断新的超时时间是否小于当前正在执行的超时时间. 用于将计时器更新为最新的
         if(this.lastCheckId && callId !== this.lastCheckId){
             if(callItem.endTime < this.lastCheckTime){
@@ -182,12 +180,16 @@ class ApiController {
         }
         this.lastCheckTime = callItem.endTime
         this.lastCheckId = callId
-        if(timeWait > 0){
-            
+        // 防止负数导致疯狂执行
+        if(timeWait > 0 || timeWait + this.checkInterval > 5){
+            if(timeWait < 0){
+                timeWait = Math.abs(timeWait)
+            }
             this.checkTimer = setTimeout(() => {
                 this.checkTimeout()
             }, timeWait)
         }
+        // 如果超时时间小于等于0, 立即判断是否已经超时
         if(timeWait <= 0){
             // 立即执行
             this.checkTimeout()
@@ -196,20 +198,21 @@ class ApiController {
     // 超时检查
     private checkTimeout() {
         let callItem = this.calls[this.lastCheckId]
-        if(!callItem || callItem.endTime != -1){
+        if(!callItem || callItem.endTime === -1){
             // 尝试获取calls中获取到期时间最小的一个请求
             this.logFn(`[W] checkTimeout: ${this.lastCheckId} not supported check timeoutDate: ${callItem?.endTime}`)
             return this.findNextTimeoutCall()
         }
         let nowTimeStamp = Date.now()
-        if (callItem.endTime > nowTimeStamp){
-            this.callTimeoutHandle(callItem)
+        if (callItem.endTime < nowTimeStamp){
+            return this.callTimeoutHandle(callItem)
         }
         // 暂未超时,
         this.startTimeoutCheck(this.lastCheckId)
     }
     private callTimeoutHandle(callItem: CallItem)
     {
+        this.logFn(`[E] ${callItem.callId} timeout endTime:${callItem.endTime}`)
         // 移除超时检查
         this.lastCheckTime = 0;
         this.lastCheckId = "";
@@ -269,7 +272,7 @@ class ApiController {
      * @param params
      * @param timeout
      */
-    sendQuery(action: string, params: any, timeout: number = 5000) {
+    sendQuery(action: string, params: any, timeout: number = 5000): [callId: string, Promise<ResponseData>] {
         let callId = this.buildCallId()
         let requestData: RequestData = {
             type: ApiType.req,
@@ -291,18 +294,9 @@ class ApiController {
         // 获取当前的时间戳
         let timeStamp = Date.now()
         // 加上通信超时时间
-        let endTime = timeStamp +  + 200
-        // 如果是-1, 则表示不设置超时时间, 永久等待检测
-        if(timeout === -1){
-            endTime = -1
-        }else{
-            if(this.isInit){
-                this.startTimeoutCheck(callId)
-            }else{
-                this.logFn(`!!!Try calling the send function before initializing`)
-            }
-        }
-        return new Promise((resolve, reject) => {
+        let endTime = timeStamp + timeout + 200
+
+        let promise: Promise<ResponseData> = new Promise((resolve, reject) => {
             this.calls[callId] = {
                 action: action,
                 callId: callId,
@@ -312,8 +306,20 @@ class ApiController {
                 isInit: !this.isInit,
             }
         })
+        // 如果是-1, 则表示不设置超时时间, 永久等待检测
+        if(timeout === -1){
+            endTime = -1
+        }else{
+            if(this.isInit){
+                console.log(`[I] start timeout check: ${callId} now: ${timeStamp} endTime: ${endTime} wait: ${timeout}`)
+                this.startTimeoutCheck(callId)
+            }else{
+                this.logFn(`!!!Try calling the send function before initializing`)
+            }
+        }
+        return [callId, promise]
     }
-    registerNotify(action: string, isOnce: boolean = false, callback: (params: any) => void): string {
+    registerNotify(action: string, isOnce: boolean = false, callback: (params: NotifyData) => void): string {
         if (!this.notifyMap[action]) {
             // 初始化 notify 对象
             this.notifyMap[action] = {
@@ -331,7 +337,6 @@ class ApiController {
     // 取消方法
     cancelQuery(callId: string) {
         if(this.calls[callId]){
-
             this.callResponseHandle(this.calls[callId], {
                 type: ApiType.res,
                 action: this.calls[callId].action,
@@ -344,7 +349,7 @@ class ApiController {
         }
     }
     destroy() {
-        ipcRenderer.removeListener(actionMap.apiControllerHandler.code, this.apiControllerHandler)
+
     }
 }
 
@@ -354,5 +359,7 @@ let api: ApiController | null = null
 if(!api){
     api = new ApiController()
 }
+
+
 export default api as ApiController
 
