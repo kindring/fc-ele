@@ -1,7 +1,7 @@
 
 // import {App} from "vue";
 
-import {Magnet, MagnetInfo, MagnetSize, SavedMagnet} from "@/types/magnetType.ts";
+import {Magnet, MagnetInfo, MagnetSize, SavedMagnet, showMagnetInfo} from "@/types/magnetType.ts";
 
 
 
@@ -26,13 +26,35 @@ export const timeMagnetInfo: MagnetInfo =
             height: 6,
         },
     },
-    component: null
+    component: import('@/components/magnets/timeMagnet.vue')
 }
 
-const magnetInfos: MagnetInfo[] =
+
+
+
+export const magnetInfos: MagnetInfo[] =
 [
-    timeMagnetInfo
+    timeMagnetInfo,
+    {...timeMagnetInfo, defaultSize: MagnetSize.small, component: import('@/components/magnets/timeMagnet.vue')},
+    {...timeMagnetInfo, defaultSize: MagnetSize.small, component: import('@/components/magnets/timeMagnet.vue')},
+    {...timeMagnetInfo, defaultSize: MagnetSize.small, component: import('@/components/magnets/timeMagnet.vue')},
+    {...timeMagnetInfo, defaultSize: MagnetSize.small, component: import('@/components/magnets/timeMagnet.vue')},
+    {...timeMagnetInfo, defaultSize: MagnetSize.small, component: import('@/components/magnets/timeMagnet.vue')},
 ]
+
+
+export function getShowMagnetInfo() : showMagnetInfo[]{
+    return magnetInfos.map(magnetInfo=>{
+        let size = magnetInfo.sizes[magnetInfo.defaultSize]
+        if (!size) {
+            throw new Error(`magnetInfo default size not found: ${magnetInfo.type} ${magnetInfo.defaultSize} magnet must have size`)
+        }
+        return {
+            ...magnetInfo,
+            size: size
+        }
+    })
+}
 
 /**
  * 初始化时间磁贴组件

@@ -74,6 +74,10 @@ export interface MagnetInfo  {
     component: any
 }
 
+export interface showMagnetInfo extends MagnetInfo{
+    size: size
+}
+
 
 export interface MagnetEmit<T>{
     event: string,

@@ -3,7 +3,7 @@
 
 import {onMounted, ref} from "vue";
 import MacWindow from "./components/window/macWindow.vue";
-import MagnetView from "./components/magnetView.vue";
+import MagnetView from "./components/magnets/magnetView.vue";
 import AppleBar from "@/components/appleBar/appleBar.vue";
 import BarIconBtn from "@/components/appleBar/barIconBtn.vue";
 import SettingView from "@/components/settingView.vue";

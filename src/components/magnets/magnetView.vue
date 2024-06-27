@@ -11,6 +11,7 @@ import {CollisionDirection, CollisionResult, detectCollisionDirection, Drag, Rec
 import IconSvg from "@/components/public/icon/iconSvg.vue";
 import {fetchMagnetList} from "@/apis/magnetControl.ts";
 import {ErrorCode, ResponseData} from "@/types/apiTypes.ts";
+import MagnetTable from "@/components/magnets/magnetTable.vue";
 
 const timeMagnetInfo = initTimeMagnetInfo(TimeMagnet)
 
@@ -297,7 +298,7 @@ function setIsSite(value: boolean = false) {
 
     <TransitionRoot
         :show="isOpen"
-        as="template"
+        as="span"
         enter="transition duration-300 ease-out"
         enter-from="opacity-0"
         enter-to="opacity-100"
@@ -305,7 +306,7 @@ function setIsSite(value: boolean = false) {
         leave-from="opacity-100"
         leave-to="opacity-0"
     >
-    <Dialog class="dialog" >
+    <Dialog class="dialog">
       <DialogPanel class="dialog-content">
         <DialogTitle class="dialog-title">
           <span>新增磁贴</span>
@@ -315,27 +316,9 @@ function setIsSite(value: boolean = false) {
         </DialogTitle>
         <div class="dialog-show">
 <!--          磁贴组件选择列表-->
-          <TransitionRoot
-              class="site"
-              :show="isSite"
-              enter="transition ease-in-out duration-700 transform"
-              enterFrom="translate-y-full"
-              enterTo="translate-y-0"
-              leave="transition ease-in-out duration-700 transform"
-              leaveFrom="translate-y-0"
-              leaveTo="translate-y-full"
-          >
-            <div className="site-content-bottom">
-              测试
-              <button class="close-btn" @click="setIsSite(false)">
-                X
-              </button>
-            </div>
-          </TransitionRoot >
-          <button @click="setIsSite(true)">开启侧边栏</button>
-          <button @click="setIsOpen(false)">Cancel</button>
+          <magnet-table></magnet-table>
         </div>
-
+        <button @click="setIsOpen(false)">Deactivate</button>
       </DialogPanel>
     </Dialog>
   </TransitionRoot>

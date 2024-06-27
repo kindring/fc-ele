@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ComponentInternalInstance, getCurrentInstance, onBeforeMount, onMounted, Ref, ref, UnwrapRef} from "vue";
+import {ComponentInternalInstance, getCurrentInstance, onMounted, Ref, ref, UnwrapRef} from "vue";
 import { IpcAction, windowAction} from "../../tools/IpcCmd.ts";
 
 import "@/assets/base.css"
@@ -24,6 +24,10 @@ const switchFullHandle = () => {
   isFull.value = !isFull.value
 
 }
+
+// 给body挂载大小属性
+
+
 const btnClickHandel = (action: IpcAction) => {
   proxy?.$winHandle(action)
 }
@@ -52,8 +56,8 @@ onMounted(()=>{
       proxy?.$winHandle(windowAction.enableIgnoreMouse);
     }
   });
-
 })
+
 
 </script>
 
@@ -71,21 +75,21 @@ onMounted(()=>{
 
         <div class="control-box">
           <slot name="top"></slot>
-          <div :class="`no-drag showTopTip btn ding ${isDing?'ding-is':''}`"  @click="switchDingHandle">
+          <div id="win-btn-ding" :class="`no-drag showTopTip btn ding ${isDing?'ding-is':''}`"  @click="switchDingHandle">
             <span class="showTip">{{isDing?"取消置顶":"置顶"}}</span>
           </div>
-          <div class="no-drag showTopTip btn min" @click="btnClickHandel(windowAction.min)">
+          <div id="win-btn-min"  class="no-drag showTopTip btn min" @click="btnClickHandel(windowAction.min)">
             <span class="showTip">最小化</span>
           </div>
-          <div :class="`no-drag showTopTip btn full ${isFull?'full-is':''}`"  @click="switchFullHandle">
+          <div id="win-btn-full"  :class="`no-drag showTopTip btn full ${isFull?'full-is':''}`"  @click="switchFullHandle">
             <span class="showTip">{{isFull?'取消全屏':'全屏'}}</span>
           </div>
-          <div class="no-drag showTopTip btn close"  @click="btnClickHandel(windowAction.close)">
+          <div id="win-btn-close"  class="no-drag showTopTip btn close"  @click="btnClickHandel(windowAction.close)">
             <span class="showTip">关闭窗口</span>
           </div>
         </div>
       </div>
-      <div class="window-content">
+      <div class="window-content" id="headlessui-dialog">
         <slot></slot>
       </div>
     </div>
@@ -93,13 +97,26 @@ onMounted(()=>{
 </template>
 
 <style>
-
+body{
+  margin: 0;
+  padding: 5px;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
 .min_window{
-  width: calc( 100% - 30px);
-  height:  calc( 100% - 30px);
-  margin: 15px;
+  width: calc( 100% - 10px);
+  height:  calc( 100% - 10px);
   box-sizing: border-box;
   border: 1px solid transparent;
+}
+
+#headlessui-portal-root{
+  position: absolute;
+  top: 35px;
+  left: 0;
+  width: calc(100% - 10px);
+  height: calc(100% - 35px);
 }
 .max_window{
   width: 100%;
@@ -116,5 +133,6 @@ onMounted(()=>{
   position: relative;
   overflow: hidden;
 }
+
 
 </style>
