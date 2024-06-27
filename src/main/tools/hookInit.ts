@@ -2,7 +2,7 @@ import {IpcAction, actionMap} from "../../tools/IpcCmd.ts";
 import hook, {HookFn} from "../../util/hook.ts";
 import {
     closeWin,
-    connectedWin,
+    connectedWin, disableIgnoreMouse, enableIgnoreMouse,
     hideWin,
     maxWin,
     minWin,
@@ -49,4 +49,6 @@ export function initHook(){
     hookBind(actionMap.hide, hideWin);
     hookBind(actionMap.show, showWin);
     hookBind(actionMap.exitApp, appControl.exit);
+    hookBind(actionMap.enableIgnoreMouse, enableIgnoreMouse);
+    hookBind(actionMap.disableIgnoreMouse, disableIgnoreMouse);
 }

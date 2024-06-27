@@ -52,7 +52,7 @@ function _saveProjectConfig(config: AppConfig): boolean {
         // 判断目录是否存在
         if(!fs.existsSync(path.dirname(configPath))){
             logger.info("创建默认配置文件");
-            fs.mkdirSync(path.dirname(configPath));
+            fs.mkdirSync(path.dirname(configPath), {recursive: true});
         }
         fs.writeFileSync(configPath, JSON.stringify(config));
         return true;

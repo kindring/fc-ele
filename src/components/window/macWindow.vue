@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ComponentInternalInstance, getCurrentInstance, Ref, ref, UnwrapRef} from "vue";
+import {ComponentInternalInstance, getCurrentInstance, onBeforeMount, onMounted, Ref, ref, UnwrapRef} from "vue";
 import { IpcAction, windowAction} from "../../tools/IpcCmd.ts";
 
 import "@/assets/base.css"
@@ -27,13 +27,41 @@ const switchFullHandle = () => {
 const btnClickHandel = (action: IpcAction) => {
   proxy?.$winHandle(action)
 }
+
+const mainWindow = ref<HTMLDivElement >()
+const dragBar = ref<HTMLDivElement >()
+onMounted(()=>{
+  const el = mainWindow.value as HTMLElement
+  const drag = dragBar.value as HTMLElement
+  if(!el || !drag){
+    console.log("窗口dom未找到")
+    return
+  }
+  el.addEventListener('mouseenter', () => {
+    console.log("鼠标进入窗口")
+    proxy?.$winHandle(windowAction.disableIgnoreMouse);
+  });
+  el.addEventListener('mouseleave', (evt: MouseEvent) => {
+    // 判断触发的dom
+    // tips 判断鼠标是否真的移出了指定的dom窗口, 在内部有元素设置了drag属性的情况下, 鼠标会被视作离开窗口
+    // 1. 获取元素的区域位置,
+    let { left, top, width, height } = el.getBoundingClientRect();
+
+    if (evt.pageX < left || evt.pageX > left + width || evt.pageY < top || evt.pageY > top + height) {
+      console.log("鼠标离开窗口")
+      proxy?.$winHandle(windowAction.enableIgnoreMouse);
+    }
+  });
+
+})
+
 </script>
 
 <template>
-  <div :class="[isFull? 'max_window': 'min_window']">
+  <div :class="[isFull? 'max_window': 'min_window']" ref="mainWindow">
     <div class="window">
       <div class="top-bar">
-        <div class="drag top-title" >
+        <div class="drag top-title" ref="dragBar">
           <slot name="top">
             <icon-svg  :icon-name="icon"/>
             <span class="ml-1.5 ">{{title}}</span>
@@ -67,10 +95,11 @@ const btnClickHandel = (action: IpcAction) => {
 <style>
 
 .min_window{
-  width: calc( 100% - 10px);
-  height:  calc( 100% - 10px);
-  margin: 5px;
+  width: calc( 100% - 30px);
+  height:  calc( 100% - 30px);
+  margin: 15px;
   box-sizing: border-box;
+  border: 1px solid transparent;
 }
 .max_window{
   width: 100%;

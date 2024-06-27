@@ -33,7 +33,7 @@ export interface RequestData
     timeout: number;
 }
 
-export interface ResponseData
+export interface ResponseData<T>
 {
     type: ApiType.res;
     callId: string;
@@ -44,7 +44,7 @@ export interface ResponseData
     // 错误信息
     msg: string;
     // 返回的数据
-    data: any;
+    data: T;
 }
 
 export interface NotifyData

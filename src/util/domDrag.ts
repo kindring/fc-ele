@@ -231,7 +231,7 @@ export class Drag{
 
         this.moveStart && this.moveStart(mouseInfo, this.thisInfo);
         setTimeout(()=>{
-            document.addEventListener('mousemove', this.mouseMove);
+            document.addEventListener('pointermove', this.mouseMove);
         }, 100)
         document.addEventListener('mouseup', this.mouseUp);
 
@@ -247,14 +247,14 @@ export class Drag{
             y: y
         }
         // 解除事件绑定
-        document.removeEventListener('mousemove', this.mouseMove);
+        document.removeEventListener('pointermove', this.mouseMove);
         document.removeEventListener('mouseup', this.mouseUp);
         this.moveEnd && this.moveEnd(mouseInfo , this.thisInfo);
     }
     mouseMove = (e: MouseEvent) => {
         if (!this.isMove){
             // 已经被取消
-            document.removeEventListener('mousemove', this.mouseMove);
+            document.removeEventListener('pointermove', this.mouseMove);
             return
         }
         // 获取鼠标位置

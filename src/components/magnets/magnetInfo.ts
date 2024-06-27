@@ -1,7 +1,8 @@
 
 // import {App} from "vue";
 
-import {Magnet, MagnetInfo, MagnetSize} from "@/types/magnetType.ts";
+import {Magnet, MagnetInfo, MagnetSize, SavedMagnet} from "@/types/magnetType.ts";
+
 
 
 const cellWidth = 50;
@@ -28,20 +29,60 @@ export const timeMagnetInfo: MagnetInfo =
     component: null
 }
 
+const magnetInfos: MagnetInfo[] =
+[
+    timeMagnetInfo
+]
 
-
+/**
+ * 初始化时间磁贴组件
+ * @param component
+ */
 export function initTimeMagnetInfo(component: any): MagnetInfo{
     timeMagnetInfo.component = component
     return timeMagnetInfo
 }
 
+function _findMagnetInfo(type: string): MagnetInfo
+{
+    let _magnetInfo = magnetInfos.find(magnetInfo => magnetInfo.type === type)
+    if (!_magnetInfo) {
+        throw new Error(`magnetInfo not found: ${type}`)
+    }
+    return _magnetInfo
+}
+function  _savedMagnet2Magnet(savedMagnet: SavedMagnet) : Magnet
+{
+    let magnetInfo = _findMagnetInfo(savedMagnet.type)
+    let size = magnetInfo.sizes[savedMagnet.size] || magnetInfo.sizes[magnetInfo.defaultSize]
+    if (!size) {
+        throw new Error(`magnetInfo size not found: ${savedMagnet.type} ${savedMagnet.size} magnet must have size`)
+    }
+    return {
+        id: savedMagnet.id,
+        type: savedMagnet.type,
+        size: savedMagnet.size,
+        x: savedMagnet.x,
+        y: savedMagnet.y,
+        width: size.width,
+        height: size.height,
+        event: magnetInfo.event,
+        selected: false,
+        changed: false,
+    }
+}
 
+export function savedMagnets2Magnets(savedMagnets: SavedMagnet[]): Magnet[]{
+    let arr = savedMagnets.map(savedMagnet => _savedMagnet2Magnet(savedMagnet))
+    return arr
+}
 
 export function computeMagnetStyle(magnet: Magnet) {
     // console.log(magnet)
     // 计算磁贴样式 元素宽度为 50px, 间距为 5px
     return computeStyle(magnet.width, magnet.height, magnet.x, magnet.y);
 }
+
 
 
 

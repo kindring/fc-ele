@@ -90,6 +90,18 @@ export const actionMap: { [key: string]: IpcAction } = {
         icon: 'api',
         code: 'apiControl',
         resCode: 'apiControl_replay'
+    },
+    enableIgnoreMouse: {
+        title: '开启鼠标穿透',
+        icon: 'mouse',
+        code: 'enableIgnoreMouse',
+        resCode: 'enableIgnoreMouse_replay'
+    },
+    disableIgnoreMouse: {
+        title: '关闭鼠标穿透',
+        icon: 'mouse',
+        code: 'disableIgnoreMouse',
+        resCode: 'disableIgnoreMouse_replay'
     }
 }
 
@@ -106,5 +118,7 @@ export const windowAction: { [key: string]: IpcAction } = {
     openSetting: actionMap.openSetting,
     exitApp: actionMap.exitApp,
     bindSignId: actionMap.bindSignId,
-    questionUser: actionMap.questionUser
+    questionUser: actionMap.questionUser,
+    enableIgnoreMouse: actionMap.enableIgnoreMouse,
+    disableIgnoreMouse: actionMap.disableIgnoreMouse,
 };

@@ -16,7 +16,7 @@ export enum MagnetSize {
 }
 
 /**
- * 磁贴类型
+ * 磁贴类型, 前端应用的磁贴类型
  */
 export interface Magnet {
     // 磁贴id, 用于存储再数据库中
@@ -29,16 +29,29 @@ export interface Magnet {
     height: number,
     // 磁贴内容, 确定磁贴中的具体内容
     type: string,
+    // event 触发事件的key
+    event: string,
     // 磁贴大小, 用于确定磁贴的样式
     size: MagnetSize,
-    // 编辑模式, 用于判断是否可以拖动
-    editMode: boolean,
     // 磁贴是否被选中, 用于判断是否可以拖动
     selected: boolean,
     // 磁贴是否被改变, 用于判断是否需要保存
     changed: boolean,
-
 }
+
+/**
+ * 存储磁贴信息
+ */
+export interface SavedMagnet
+{
+    id: string,
+    x: number,
+    y: number,
+    type: string,
+    size: MagnetSize,
+}
+
+
 
 interface size {
     width: number,

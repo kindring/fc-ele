@@ -46,5 +46,7 @@ export function initIpc() {
     bindAction(windowAction.restore);
     bindAction(windowAction.openSetting);
     bindAction(actionMap.exitApp);
+    bindAction(windowAction.enableIgnoreMouse);
+    bindAction(windowAction.disableIgnoreMouse);
 }
 

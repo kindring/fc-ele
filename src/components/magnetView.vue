@@ -1,19 +1,16 @@
 <script setup lang="ts">
-import {reactive, ref, watch} from "vue";
+import {onBeforeMount, reactive, ref, watch} from "vue";
+import { Dialog, DialogPanel, DialogTitle, TransitionRoot  } from '@headlessui/vue'
 import TimeMagnet from "@/components/magnets/timeMagnet.vue";
 import vueDrag, {MoveInfo} from "@/components/public/vueDrag.vue";
-import {Magnet, MagnetEmit, MagnetSize} from "@/types/magnetType.ts";
-import {
-  comMaxWidth,
-  computeMagnetStyle,
-  computeStyle,
-  comXY,
-  initTimeMagnetInfo
-} from "@/components/magnets/magnetInfo.ts";
+import {Magnet, MagnetEmit} from "@/types/magnetType.ts";
+import {comMaxWidth, computeMagnetStyle, comXY, initTimeMagnetInfo} from "@/components/magnets/magnetInfo.ts";
 
 import {Calendar} from "@/util/time.ts";
 import {CollisionDirection, CollisionResult, detectCollisionDirection, Drag, Rect} from "@/util/domDrag.ts";
 import IconSvg from "@/components/public/icon/iconSvg.vue";
+import {fetchMagnetList} from "@/apis/magnetControl.ts";
+import {ErrorCode, ResponseData} from "@/types/apiTypes.ts";
 
 const timeMagnetInfo = initTimeMagnetInfo(TimeMagnet)
 
@@ -21,48 +18,26 @@ const typeComponent = {
   [timeMagnetInfo.type]: timeMagnetInfo.component
 }
 
-const magnetItemInfos: Magnet[] = [
-  {
-    id: `1`,
-    type: timeMagnetInfo.type,
-    x: 0,
-    y: 0,
-    width: timeMagnetInfo.sizes.medium?.width??0,
-    height: timeMagnetInfo.sizes.medium?.height??0,
-    size: MagnetSize.medium,
-    editMode: false,
-    selected: false,
-    changed: false,
-  },
-  {
-    id: `233`,
-    type: timeMagnetInfo.type,
-    x: 7,
-    y: 10,
-    width: timeMagnetInfo.sizes.small?.width??0,
-    height: timeMagnetInfo.sizes.small?.height??0,
-    size: MagnetSize.small,
-    editMode: false,
-    selected: false,
-    changed: false,
-  },
-  {
-    id: `2323`,
-    type: timeMagnetInfo.type,
-    x: 5,
-    y: 20,
-    width: timeMagnetInfo.sizes.small?.width??0,
-    height: timeMagnetInfo.sizes.small?.height??0,
-    size: MagnetSize.small,
-    editMode: false,
-    selected: false,
-    changed: false,
-  }
-];
 
-const magnetItems = reactive(magnetItemInfos)
+
+const magnetItems = reactive([]) as Magnet[]
 const magnetEl = ref();
 let maxWidth = 10;
+
+
+async function loadMagnetList() {
+  let response: ResponseData<Magnet[]> = await fetchMagnetList()
+  if (response.code !== ErrorCode.success) {
+    console.log(response.msg)
+    return;
+  }
+  let _MagnetItems = response.data;
+  magnetItems.splice(0, magnetItems.length, ..._MagnetItems)
+}
+
+onBeforeMount(() => {
+  loadMagnetList()
+})
 
 function daySelect(calendar: Calendar){
   console.log(`选择日期 ${calendar.year}年 ${calendar.month}月 ${calendar.day}日`)
@@ -258,6 +233,21 @@ function deleteMagnet(magnet: Magnet) {
 }
 
 
+
+const isOpen = ref(false)
+function setIsOpen(value: boolean = false) {
+  isOpen.value = value
+  if (value)
+  {
+    setIsSite(false)
+  }
+}
+
+const isSite = ref(false)
+function setIsSite(value: boolean = false) {
+  isSite.value = value
+}
+
 </script>
 
 <template>
@@ -298,11 +288,57 @@ function deleteMagnet(magnet: Magnet) {
 
 <!--    编辑模式下的按钮控件 -->
     <div class="edit-control" v-if="editMode">
-      <div class="apple-btn mx-0.5">
+      <div class="apple-btn mx-0.5" @click="setIsOpen(true)">
         <icon-svg icon-name="add"></icon-svg>
       </div>
       <div class="apple-btn mx-0.5" @click="()=>{emit('editModeChange')}"> 完成</div>
     </div>
+
+
+    <TransitionRoot
+        :show="isOpen"
+        as="template"
+        enter="transition duration-300 ease-out"
+        enter-from="opacity-0"
+        enter-to="opacity-100"
+        leave="transition duration-200 ease-in"
+        leave-from="opacity-100"
+        leave-to="opacity-0"
+    >
+    <Dialog class="dialog" >
+      <DialogPanel class="dialog-content">
+        <DialogTitle class="dialog-title">
+          <span>新增磁贴</span>
+          <button class="close-btn" @click="setIsOpen(false)">
+            X
+          </button>
+        </DialogTitle>
+        <div class="dialog-show">
+<!--          磁贴组件选择列表-->
+          <TransitionRoot
+              class="site"
+              :show="isSite"
+              enter="transition ease-in-out duration-700 transform"
+              enterFrom="translate-y-full"
+              enterTo="translate-y-0"
+              leave="transition ease-in-out duration-700 transform"
+              leaveFrom="translate-y-0"
+              leaveTo="translate-y-full"
+          >
+            <div className="site-content-bottom">
+              测试
+              <button class="close-btn" @click="setIsSite(false)">
+                X
+              </button>
+            </div>
+          </TransitionRoot >
+          <button @click="setIsSite(true)">开启侧边栏</button>
+          <button @click="setIsOpen(false)">Cancel</button>
+        </div>
+
+      </DialogPanel>
+    </Dialog>
+  </TransitionRoot>
   </div>
 </template>
 

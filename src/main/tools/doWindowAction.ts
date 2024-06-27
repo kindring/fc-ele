@@ -258,6 +258,41 @@ export function showWin(sign: string){
     });
 }
 
+export function disableIgnoreMouse(sign: string)
+{
+    return new Promise((resolve,reject)=>{
+        let winObj = AppControl.findWin(sign);
+        if(!winObj || !winObj.win) return reject(Error(`[取消鼠标穿透] 窗口${sign}不存在`));
+        try {
+            winObj.win.setIgnoreMouseEvents(false);
+            logger.debug('取消鼠标穿透:' + winObj.title);
+            resolve(true);
+        }
+        catch (err) {
+            logger.debug('取消鼠标穿透失败');
+            let error = err as Error;
+            logger.error(error.message);
+            reject(err);
+            // logger.info()
+        }
+    });
+}
+export function enableIgnoreMouse(sign: string)
+{
+    return new Promise((resolve,reject)=>{
+        let winObj = AppControl.findWin(sign);
+        if(!winObj || !winObj.win) return reject(Error(`[鼠标穿透] 窗口${sign}不存在`));
+        try {
+            winObj.win.setIgnoreMouseEvents(true,  { forward: true });
+            logger.debug('鼠标穿透:' + winObj.title);
+            resolve(true);
+        }
+        catch (err) {
+            logger.debug('鼠标穿透失败');
+        }
+    })
+}
+
 
 
 export function centerWin(sign: string){

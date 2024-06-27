@@ -8,4 +8,8 @@ export default {
     extend: {},
   },
   plugins: [],
+  // not use tailwind default css
+  corePlugins: {
+    preflight: false,
+  }
 }
