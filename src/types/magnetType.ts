@@ -37,6 +37,13 @@ export interface Magnet {
     selected: boolean,
     // 磁贴是否被改变, 用于判断是否需要保存
     changed: boolean,
+    // 是否为新增
+    isAdd: boolean
+}
+
+export interface AddMagnetInfo {
+    type: string,
+    size: MagnetSize,
 }
 
 /**
@@ -51,9 +58,16 @@ export interface SavedMagnet
     size: MagnetSize,
 }
 
+export interface ChangeSaveMagnet extends SavedMagnet
+{
+    isAdd: boolean
+}
 
 
-interface size {
+
+interface Size {
+    title: string,
+    description: string,
     width: number,
     height: number,
 }
@@ -63,19 +77,19 @@ interface size {
  * 磁贴大小定义
  */
 export interface MagnetInfo  {
+    title: string,
     type: string,
     event: string,
     // 磁贴可以有多个可选尺寸, 不同尺寸, 对应不同宽高
     sizes:
-        { [key in MagnetSize]?: size}
+        { [key in MagnetSize]?: Size}
     ,
     defaultSize: MagnetSize,
     // 磁贴内容, 确定磁贴中的具体内容
-    component: any
 }
 
-export interface showMagnetInfo extends MagnetInfo{
-    size: size
+export interface ShowMagnetInfo extends MagnetInfo{
+    size: Size
 }
 
 

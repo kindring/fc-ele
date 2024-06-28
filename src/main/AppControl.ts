@@ -10,7 +10,6 @@ import BrowserWindowConstructorOptions = Electron.BrowserWindowConstructorOption
 import {initIpc} from "./tools/ipcInit.ts";
 import {initHook} from "./tools/hookInit.ts";
 import hook from "@/util/hook.ts";
-import path from "path";
 import Path from "path";
 
 let logger = Logger.logger('controlWindow', 'info');
@@ -74,7 +73,6 @@ function findWin(sign: string): AppWindow | null {
 
 function findWinByType(type: string): AppWindow[] {
     // 同一个类型可能有多个窗口
-
     return _winArr.filter(value => value.type === type);
 }
 
@@ -192,7 +190,7 @@ function registerHotKey(hotKey: HotKeyConfig, mainWin: AppWindow){
     return true
 }
 function _createTray(app: Electron.App, mainWin: AppWindow){
-    const appPath = app.isPackaged ? path.dirname(app.getPath('exe')) : app.getAppPath();
+    const appPath = app.isPackaged ? Path.dirname(app.getPath('exe')) : app.getAppPath();
 
     logger.info(`[托盘挂载] appPath:${appPath}`);
     // 创建系统托盘
@@ -221,7 +219,7 @@ function _createTray(app: Electron.App, mainWin: AppWindow){
 
 function _createMainWindow(){
     let MainUrl : string = `app://index.html`
-    // let  preloadPath = path.join(__dirname, 'preload.js');
+    // let  preloadPath = Path.join(__dirname, 'preload.js');
     if (process.argv[2]) {
         console.log(process.argv[2])
         MainUrl = process.argv[2];

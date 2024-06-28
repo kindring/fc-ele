@@ -1,7 +1,7 @@
 import { ApiController } from '@/apis/baseApi.ts';
 import {ApiType, ErrorCode, NotifyData, RequestData, ResponseData} from "@/types/apiTypes.ts";
 
-let listenFn: (event:any , data: ResponseData | NotifyData) => void = () => {}
+let listenFn: (event:any , data: ResponseData<any> | NotifyData) => void = () => {}
 function sendFn(action: string, params: RequestData){
     // 随机延迟
     // console.log(`sendFn`)
@@ -27,7 +27,7 @@ describe('ApiController', () => {
     beforeEach(() => {
         apiController = new ApiController();
         // 初始化发送以及监听函数
-        apiController.init('testSign', sendFn, (_action: string, callback: (event:any , data: ResponseData | NotifyData) => void) => {
+        apiController.init('testSign', sendFn, (_action: string, callback: (event:any , data: ResponseData<any> | NotifyData) => void) => {
             // console.log(`callback init listen ${action}`)
             listenFn = callback
         }, sendActionKey, listenerActionKey);
@@ -105,7 +105,7 @@ describe('ApiController', () => {
 
         apiController.changeSign(newSign);
 
-        expect(apiController.sign).toBe(newSign);
+        expect(apiController.signId).toBe(newSign);
     });
 
     it('should set a log function', () => {

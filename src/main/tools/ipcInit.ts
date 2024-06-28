@@ -12,7 +12,7 @@ function bindAction(action: IpcAction, bindReplay: boolean = false) {
         // console.log(event);
         logger.info(`${code}-${action.title},参数:${arg}`);
         let [err,res] = await handle(
-            hook.runHook(code,arg)
+            hook.runHook(code, arg)
         );
         if(err){
             logger.error(err);
@@ -48,5 +48,6 @@ export function initIpc() {
     bindAction(actionMap.exitApp);
     bindAction(windowAction.enableIgnoreMouse);
     bindAction(windowAction.disableIgnoreMouse);
+    bindAction(actionMap.apiControl);
 }
 

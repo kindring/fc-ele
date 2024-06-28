@@ -6,7 +6,7 @@ export interface IpcAction {
 }
 
 
-export const actionMap: { [key: string]: IpcAction } = {
+export const actionMap = {
     min: {
         title: '最小化',
         icon: 'minimize',

@@ -13,6 +13,7 @@ import {
 } from "./doWindowAction.ts";
 import appControl from "../AppControl.ts";
 import Logger from "../../util/logger.ts";
+import {ipcRouter} from "@/main/tools/ipcRouter.ts";
 
 let logger = Logger.logger('ipcInit', 'info');
 
@@ -51,4 +52,5 @@ export function initHook(){
     hookBind(actionMap.exitApp, appControl.exit);
     hookBind(actionMap.enableIgnoreMouse, enableIgnoreMouse);
     hookBind(actionMap.disableIgnoreMouse, disableIgnoreMouse);
+    hookBind(actionMap.apiControl, ipcRouter)
 }

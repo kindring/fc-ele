@@ -8,7 +8,10 @@ export enum ErrorCode {
     timeout,
     // 被取消请求, 一般由发起者触发, 也有可能是由其他客户端将其取消
     cancel,
-
+    // 数据库错误, 读写数据库失败
+    db,
+    // IO错误, 读写文件失败
+    io,
 
 }
 
@@ -25,6 +28,7 @@ export enum ApiType {
 export interface RequestData
 {
     type: ApiType.req;
+    signId: string;
     callId: string;
     // 请求的具体操作
     action: string;

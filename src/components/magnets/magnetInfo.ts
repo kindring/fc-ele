@@ -1,7 +1,7 @@
 
 // import {App} from "vue";
 
-import {Magnet, MagnetInfo, MagnetSize, SavedMagnet, showMagnetInfo} from "@/types/magnetType.ts";
+import {Magnet, MagnetInfo, MagnetSize, SavedMagnet, ShowMagnetInfo} from "@/types/magnetType.ts";
 
 
 
@@ -13,21 +13,30 @@ export const MagnetEvent = "magnet"
 // 时间组件
 export const timeMagnetInfo: MagnetInfo =
 {
+    title: '日历组件',
     type: 'TimeMagnet',
     event: 'daySelect',
     defaultSize: MagnetSize.medium,
     sizes: {
         small: {
+            title: "本周日历",
+            description: '展示本周的日历列表',
             width: 7,
             height: 3,
         },
         medium: {
+            title: '',
+            description: '',
             width: 7,
             height: 6,
         },
     },
-    component: import('@/components/magnets/timeMagnet.vue')
 }
+
+const TypeComponent: {[key:string]: any} = {
+    [timeMagnetInfo.type]: null,
+}
+
 
 
 
@@ -35,15 +44,15 @@ export const timeMagnetInfo: MagnetInfo =
 export const magnetInfos: MagnetInfo[] =
 [
     timeMagnetInfo,
-    {...timeMagnetInfo, defaultSize: MagnetSize.small, component: import('@/components/magnets/timeMagnet.vue')},
-    {...timeMagnetInfo, defaultSize: MagnetSize.small, component: import('@/components/magnets/timeMagnet.vue')},
-    {...timeMagnetInfo, defaultSize: MagnetSize.small, component: import('@/components/magnets/timeMagnet.vue')},
-    {...timeMagnetInfo, defaultSize: MagnetSize.small, component: import('@/components/magnets/timeMagnet.vue')},
-    {...timeMagnetInfo, defaultSize: MagnetSize.small, component: import('@/components/magnets/timeMagnet.vue')},
+    {...timeMagnetInfo, defaultSize: MagnetSize.small, },
+    {...timeMagnetInfo, defaultSize: MagnetSize.small, },
+    {...timeMagnetInfo, defaultSize: MagnetSize.small, },
+    {...timeMagnetInfo, defaultSize: MagnetSize.small, },
+    {...timeMagnetInfo, defaultSize: MagnetSize.small, },
 ]
 
 
-export function getShowMagnetInfo() : showMagnetInfo[]{
+export function getShowMagnetInfo() : ShowMagnetInfo[]{
     return magnetInfos.map(magnetInfo=>{
         let size = magnetInfo.sizes[magnetInfo.defaultSize]
         if (!size) {
@@ -56,13 +65,50 @@ export function getShowMagnetInfo() : showMagnetInfo[]{
     })
 }
 
+export function findMagnetInfo(type: string): MagnetInfo | undefined
+{
+    return magnetInfos.find(magnetInfo => magnetInfo.type === type)
+}
+
+// 寻找空位置
+export function findEmptyPosition(magnets: Magnet[], width: number, height: number, maxWidth: number): {x: number, y: number}
+{
+    let x = 0;
+    let y = 0;
+    for (let i = 0; i < magnets.length; i++) {
+        // 遍历所有的磁贴组件, 找到最下方的坐标
+        let magnet = magnets[i];
+        if (magnet.x + magnet.width > x) {
+            x = magnet.x + magnet.width;
+        }
+        // 尝试看是否能够摆下元素
+        if (magnet.y + magnet.height > y) {
+            y = magnet.y + magnet.height;
+        }
+    }
+    if (x + width > maxWidth) {
+        x = 0;
+        y += height;
+    }
+    // 防止 磁贴位置超出边界
+    return {x, y}
+}
+
 /**
- * 初始化时间磁贴组件
+ * 初始化磁贴对应的组件
  * @param component
  */
-export function initTimeMagnetInfo(component: any): MagnetInfo{
-    timeMagnetInfo.component = component
-    return timeMagnetInfo
+export function initTypeComponent(type: string , component: any){
+    TypeComponent[type] = component
+}
+
+export function getComponent(type: string) : any
+{
+    let component = TypeComponent[type]
+    if (!component) {
+        throw new Error(`component not found: ${type}`)
+    }
+    return component
 }
 
 function _findMagnetInfo(type: string): MagnetInfo
@@ -91,6 +137,7 @@ function  _savedMagnet2Magnet(savedMagnet: SavedMagnet) : Magnet
         event: magnetInfo.event,
         selected: false,
         changed: false,
+        isAdd: false
     }
 }
 

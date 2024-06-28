@@ -89,7 +89,7 @@ onMounted(()=>{
           </div>
         </div>
       </div>
-      <div class="window-content" id="headlessui-dialog">
+      <div class="window-content" id="kui-dialog">
         <slot></slot>
       </div>
     </div>

@@ -1,24 +1,30 @@
 <script setup lang="ts">
-import {onBeforeMount, reactive, ref, watch} from "vue";
-import { Dialog, DialogPanel, DialogTitle, TransitionRoot  } from '@headlessui/vue'
-import TimeMagnet from "@/components/magnets/timeMagnet.vue";
+import {nextTick, onBeforeMount, reactive, ref, watch} from "vue";
+// import { Dialog, DialogPanel, DialogTitle, TransitionRoot  } from '@headlessui/vue'
 import vueDrag, {MoveInfo} from "@/components/public/vueDrag.vue";
-import {Magnet, MagnetEmit} from "@/types/magnetType.ts";
-import {comMaxWidth, computeMagnetStyle, comXY, initTimeMagnetInfo} from "@/components/magnets/magnetInfo.ts";
+import {AddMagnetInfo, Magnet, MagnetEmit} from "@/types/magnetType.ts";
+import {
+  comMaxWidth,
+  computeMagnetStyle,
+  comXY, findEmptyPosition, findMagnetInfo, getComponent, initTypeComponent,
+  timeMagnetInfo,
+} from "@/components/magnets/magnetInfo.ts";
 
 import {Calendar} from "@/util/time.ts";
 import {CollisionDirection, CollisionResult, detectCollisionDirection, Drag, Rect} from "@/util/domDrag.ts";
 import IconSvg from "@/components/public/icon/iconSvg.vue";
-import {fetchMagnetList} from "@/apis/magnetControl.ts";
+import {changeMagnets, fetchMagnetList} from "@/apis/magnetControl.ts";
 import {ErrorCode, ResponseData} from "@/types/apiTypes.ts";
 import MagnetTable from "@/components/magnets/magnetTable.vue";
+import KuiDialog from "@/components/public/kui-dialog.vue";
 
-const timeMagnetInfo = initTimeMagnetInfo(TimeMagnet)
 
-const typeComponent = {
-  [timeMagnetInfo.type]: timeMagnetInfo.component
+import TimeManger from "@/components/magnets/timeMagnet.vue"
+
+initComponents()
+function initComponents() {
+  initTypeComponent(timeMagnetInfo.type, TimeManger)
 }
-
 
 
 const magnetItems = reactive([]) as Magnet[]
@@ -65,6 +71,7 @@ const props = defineProps({
 
 const emit = defineEmits(['editModeChange'])
 
+const myEditMode = ref(props.editMode)
 // 转换为坐标值
 
 const moveTipStyle = ref()
@@ -201,6 +208,11 @@ function moveHandle(magnet: Magnet, moveInfo: MoveInfo){
   }, collidingWaitTime)
 }
 
+function moveStartHandle(magnet: Magnet)
+{
+  magnet.selected = true
+}
+
 function moveEndHandle(magnet: Magnet, moveInfo: MoveInfo)
 {
   console.log(magnet, moveInfo)
@@ -213,6 +225,7 @@ function moveEndHandle(magnet: Magnet, moveInfo: MoveInfo)
 }
 
 watch(()=>props.editMode, (val)=>{
+  myEditMode.value = val
   if(!val){
     saveMagnet()
   }
@@ -249,6 +262,49 @@ function setIsSite(value: boolean = false) {
   isSite.value = value
 }
 
+async function addMagnetHandle(addMagnetInfo: AddMagnetInfo)
+{
+  console.log(`add magnet type:${addMagnetInfo.type} size:${addMagnetInfo.size}`)
+  setIsSite(false)
+  setIsOpen(false)
+  // 生成新的组件
+  let magnetInfo = findMagnetInfo(addMagnetInfo.type)
+  if (!magnetInfo){
+    return console.error(`no match type ${addMagnetInfo.type}`)
+  }
+  let size = magnetInfo.sizes[addMagnetInfo.size]
+  if (!size){
+    return console.error(`no match size ${addMagnetInfo.size}`)
+  }
+  // 暂时接管编辑模式
+  myEditMode.value = false;
+  let {x, y} = findEmptyPosition(magnetItems, size.width, size.height, maxWidth)
+  let magnet: Magnet = {
+    id: `tmpId-${magnetItems.length}`,
+    type: addMagnetInfo.type,
+    size: addMagnetInfo.size,
+    event: magnetInfo.event,
+    x: x,
+    y: y,
+    width: size.width,
+    height: size.height,
+    selected: false,
+    changed: false,
+    isAdd: true,
+  }
+  magnetItems.push(magnet);
+  // 等待渲染完成, 再次开启编辑模式
+  await nextTick()
+  myEditMode.value = true;
+}
+
+async function saveMagnets(){
+  let result = await changeMagnets(magnetItems);
+  console.log('保存完成');
+  console.log(result);
+  emit('editModeChange')
+}
+
 </script>
 
 <template>
@@ -263,18 +319,18 @@ function setIsSite(value: boolean = false) {
        v-for="magnet in magnetItems"
        :key="magnet.id"
        :style="computeMagnetStyle(magnet)"
-       :open-drag="editMode"
+       :open-drag="myEditMode"
        :move-hide="true"
        :y-limit="false"
-              :hide-move="true"
+       :hide-move="true"
        @init="moveInitHandle"
-       @move-start="()=>{magnet.selected = true}"
+       @move-start="(_moveInfo)=>{moveStartHandle(magnet)}"
        @move="(moveInfo)=>{moveHandle(magnet, moveInfo)}"
        @move-end="(moveInfo)=>{moveEndHandle(magnet, moveInfo)}"
     >
       <div class="drag-content" >
         <component
-            :is="typeComponent[magnet.type]"
+            :is="getComponent(magnet.type)"
             :size="magnet.size"
             @magnet="eventHandler"
         ></component>
@@ -292,36 +348,35 @@ function setIsSite(value: boolean = false) {
       <div class="apple-btn mx-0.5" @click="setIsOpen(true)">
         <icon-svg icon-name="add"></icon-svg>
       </div>
-      <div class="apple-btn mx-0.5" @click="()=>{emit('editModeChange')}"> 完成</div>
+      <div class="apple-btn mx-0.5" @click="()=>{saveMagnets()}"> 完成</div>
     </div>
 
 
-    <TransitionRoot
+    <kui-dialog
         :show="isOpen"
-        as="span"
-        enter="transition duration-300 ease-out"
-        enter-from="opacity-0"
-        enter-to="opacity-100"
-        leave="transition duration-200 ease-in"
-        leave-from="opacity-100"
-        leave-to="opacity-0"
+        class-name="dialog dialog-mask"
     >
-    <Dialog class="dialog">
-      <DialogPanel class="dialog-content">
-        <DialogTitle class="dialog-title">
-          <span>新增磁贴</span>
-          <button class="close-btn" @click="setIsOpen(false)">
+
+      <div class="dialog-content">
+
+        <div class="dialog-title">
+          <div class="dialog-title-text">
+            添加磁贴
+          </div>
+          <div
+              class="close-btn"
+              @click="setIsOpen(false)">
             X
-          </button>
-        </DialogTitle>
-        <div class="dialog-show">
-<!--          磁贴组件选择列表-->
-          <magnet-table></magnet-table>
+          </div>
         </div>
-        <button @click="setIsOpen(false)">Deactivate</button>
-      </DialogPanel>
-    </Dialog>
-  </TransitionRoot>
+
+        <div class="dialog-show">
+          <!--          磁贴组件选择列表-->
+          <magnet-table @add-magnet="addMagnetHandle" />
+        </div>
+
+      </div>
+    </kui-dialog>
   </div>
 </template>
 

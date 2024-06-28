@@ -7,7 +7,7 @@ import {randomId} from "@/util/random.ts";
 interface CallItem {
     callId: string;
     action: string;
-    resolve: (value: ResponseData) => void;
+    resolve: (value: ResponseData<any>) => void;
     reject: (reason: any) => void;
     endTime: number;
     // 是否在初始化前尝试发送
@@ -38,7 +38,8 @@ export type ListenerFunction = (channel: string, listener: (event: any, ...args:
 
 
 export class ApiController {
-    sign = ''
+    type = ''
+    signId = ''
     calls: Calls = {}
     notifyMap: NotifyMap = {}
     // 最近的一个过期时间
@@ -60,9 +61,9 @@ export class ApiController {
     logFn: (...args: any[]) => void = console.log
     constructor() {
     }
-    init(sign: string, sendCallback: SendFunction, listenerCallback: ListenerFunction, sendKey: string, listerKey: string){
+    init(type: string, sendCallback: SendFunction, listenerCallback: ListenerFunction, sendKey: string, listerKey: string){
         this.isInit = true
-        this.sign = sign
+        this.type = type
         this.sendCallback = sendCallback
         this.listenerCallback = listenerCallback
         this.sendKey = sendKey
@@ -105,7 +106,7 @@ export class ApiController {
         }
         return this.buildNotifyId(action)
     }
-    private apiControllerHandler = (_:any, data: ResponseData | NotifyData) =>
+    private apiControllerHandler = (_:any, data: ResponseData<any> | NotifyData) =>
     {
         switch(data.type){
             case ApiType.res:
@@ -121,7 +122,7 @@ export class ApiController {
                 break;
         }
     }
-    private callResponseHandle = (call: CallItem, responseData: ResponseData) => {
+    private callResponseHandle = (call: CallItem, responseData: ResponseData<any>) => {
         if( this.lastCheckId === call.callId){
             // 取消检测当前函数的定时器, 防止多次触发
             if(this.checkTimer){
@@ -260,11 +261,12 @@ export class ApiController {
 
     /**
      * 修改当前总api的签名
-     * @param sign
+     * @param signId
      */
-    changeSign(sign: string) {
-        this.sign = sign
+    changeSign(signId: string) {
+        this.signId = signId
     }
+
 
     /**
      * 调用ipc 获取数据
@@ -272,10 +274,11 @@ export class ApiController {
      * @param params
      * @param timeout
      */
-    sendQuery(action: string, params: any, timeout: number = 5000): [callId: string, Promise<ResponseData>] {
+    sendQuery(action: string, params: any, timeout: number = 5000): [callId: string, Promise<ResponseData<any>>] {
         let callId = this.buildCallId()
         let requestData: RequestData = {
             type: ApiType.req,
+            signId: this.signId,
             action: action,
             data: params,
             callId: callId,
@@ -296,7 +299,7 @@ export class ApiController {
         // 加上通信超时时间
         let endTime = timeStamp + timeout + 200
 
-        let promise: Promise<ResponseData> = new Promise((resolve, reject) => {
+        let promise: Promise<ResponseData<any>> = new Promise((resolve, reject) => {
             this.calls[callId] = {
                 action: action,
                 callId: callId,

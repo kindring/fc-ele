@@ -45,6 +45,7 @@
     width: 20px;
     height: 20px;
     margin: 0 5px;
+    padding: 0;
     border-radius: 50%;
     cursor: pointer;
     position: relative;
@@ -209,6 +210,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 1000;
 }
 .dialog-mask::before{
     content: '';
@@ -285,8 +287,75 @@
     left: 0;
 }
 
+.tabs-w {
+    width: 100%;
+    height: calc(100% - 70px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.tabs-w .item{
+    flex-shrink: 0;
+}
+.tabs-w .tabs-control{
+    width: auto;
+    height: 30px;
+    display: flex;
+    align-items: center;
+}
+
+.tabs-w .tabs-control .item{
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    background-color: #2ecc71;
+    margin: 0 8px;
+}
+.tabs-w .tabs-control .item:hover{
+    background-color: #2980b9;
+}
+.tabs-w .tabs-control .active{
+    background-color: #2980b9;
+}
+
+.tabs-w .tabs-list{
+    width: 100%;
+    height: calc(100% - 30px);
+    padding: 0 5px;
+    display: flex;
+    overflow: auto;
+}
+.tabs-w .tabs-list .item{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+.tabs-w .tabs-list .item .drop{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
 
 
+.btn-group{
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn{
+    height: 2em;
+    display: flex;
+    padding: 0 2em;
+    align-items: center;
+    border-radius: 5px;
+    cursor: pointer;
+}
 .close-btn{
     width: 20px;
     height: 20px;

@@ -1,16 +1,17 @@
 import api from "./baseApi.ts"
 import {Magnet_Actions} from "./ApiAction.ts";
 import {ErrorCode, ResponseData} from "@/types/apiTypes.ts";
-import {Magnet, SavedMagnet} from "@/types/magnetType.ts";
+import {ChangeSaveMagnet, Magnet, SavedMagnet} from "@/types/magnetType.ts";
 import {savedMagnets2Magnets} from "@/components/magnets/magnetInfo.ts";
 
-function _magnet2savedMagnet(magnet: Magnet): SavedMagnet {
+function _magnet2savedMagnet(magnet: Magnet): ChangeSaveMagnet {
    return {
       id: magnet.id,
       type: magnet.type,
       size: magnet.size,
       x: magnet.x,
       y: magnet.y,
+      isAdd: magnet.isAdd
    }
 }
 
@@ -39,12 +40,14 @@ export async function fetchMagnetList(): Promise< ResponseData<Magnet[]> >
  */
 export async function changeMagnets(magnetList: Magnet[])
 {
-   let savedMagnets: SavedMagnet[] = magnetList.map(_magnet2savedMagnet);
-   let [_callId, promise] = api.sendQuery(Magnet_Actions.magnet_batch_update, {
-      magnetList: savedMagnets
-   });
+   let savedMagnets: ChangeSaveMagnet[] = magnetList.map(_magnet2savedMagnet);
+   let [_callId, promise] = api.sendQuery(
+       Magnet_Actions.magnet_batch_update,
+       savedMagnets
+      );
    return await promise;
 }
+
 
 /**
  * 删除磁贴信息

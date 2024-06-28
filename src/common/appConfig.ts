@@ -111,5 +111,8 @@ export function initData(): AppConfig {
     return _config;
 }
 
+export function getConfig(): AppConfig {
+    return _config!;
+}
 
 
