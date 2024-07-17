@@ -43,7 +43,14 @@ export async function c_magnet_batch_update(requestData: RequestData){
     for (let i = 0; i < saveMagnets.length; i++) {
         let magnet = saveMagnets[i];
         if (magnet.isAdd) {
-            addMagnets.push(magnet);
+            let addMagnet: SavedMagnet = {
+                id: "",
+                size: magnet.size,
+                type: magnet.type,
+                x: magnet.x,
+                y: magnet.y,
+            }
+            addMagnets.push(addMagnet);
         }else{
             updateMagnets.push(magnet);
         }

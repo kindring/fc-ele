@@ -56,6 +56,21 @@ onMounted(()=>{
       proxy?.$winHandle(windowAction.enableIgnoreMouse);
     }
   });
+
+  drag.addEventListener('mousedown', (evt: MouseEvent) => {
+    console.log("鼠标按下")
+    console.log(  evt)
+  }, {
+    capture: true,
+    passive: true
+  })
+
+  // body 添加鼠标监听事件
+  document.body.addEventListener('mousedown', (evt: MouseEvent) => {
+    console.log("body 鼠标按下")
+    console.log(  evt)
+  }, {
+  })
 })
 
 
@@ -63,7 +78,7 @@ onMounted(()=>{
 
 <template>
   <div :class="[isFull? 'max_window': 'min_window']" ref="mainWindow">
-    <div class="window">
+    <div class="window" >
       <div class="top-bar">
         <div class="drag top-title" ref="dragBar">
           <slot name="top">
