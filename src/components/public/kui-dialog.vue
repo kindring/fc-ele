@@ -8,7 +8,6 @@ defineProps({
     type: String,
     default: ''
   }
-
 })
 defineEmits(['close'])
 
@@ -44,7 +43,7 @@ defineEmits(['close'])
 </script>
 
 <template>
-  <Teleport to="#kui-dialog" v-if="show">
+  <Teleport to="#kui-root" v-if="show">
     <div :class="className">
       <slot></slot>
     </div>
