@@ -21,6 +21,7 @@ export async function c_fetchMagnetList(requestData: RequestData){
         }
         return responseData;
     }
+    console.log(result)
     responseData = {
         type: ApiType.res,
         code: ErrorCode.success,

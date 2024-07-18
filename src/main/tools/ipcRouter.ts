@@ -20,14 +20,21 @@ function sendDataByType(type: string,  data: ResponseData<any> | NotifyData): bo
     return true;
 }
 
-function sendDataBySign(signId: string, data: ResponseData<any> | NotifyData): boolean
-{
-    let win = AppControl.findWin(signId)
-    if(!win){
+function sendDataBySign(signId: string, data: ResponseData<any> | NotifyData): boolean {
+    let appWindow = AppControl.findWin(signId)
+    if (!appWindow) {
         logger.error(`[发送数据] 未找到id为${signId}的窗口`);
         return false;
     }
-    win.win?.webContents.send(actionMap.apiControl.resCode, data)
+    logger.info(`[发送数据至前端] 寻找id为${signId}的窗口 ${actionMap.apiControl.resCode}`);
+    logger.info(`[发送数据至前端] ${JSON.stringify(data)}`);
+    let win = appWindow?.win
+    if (!win)
+    {
+        logger.error(`[发送数据] id为${signId}的窗口 未初始化`);
+        return false;
+    }
+    win.webContents.send(actionMap.apiControl.resCode, data)
     return true;
 }
 const sendToMain = sendDataByType.bind(null, 'main')

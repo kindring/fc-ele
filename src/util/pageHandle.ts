@@ -4,6 +4,7 @@ import {ipcRenderer} from "electron";
 import {actionMap, IpcAction, windowAction} from "../tools/IpcCmd.ts";
 import {registerWindowData} from "../types/appConfig.ts";
 import baseApi from "@/apis/baseApi.ts";
+import {NotifyData, ResponseData} from "@/types/apiTypes.ts";
 
 // 判断是否为 webMode
 
@@ -52,11 +53,7 @@ export function windowInit(app: App, type: string){
     // 先将验证窗口绑定到全局, 接收到 绑定消息后再进行绑定
     app.config.globalProperties.$winHandle = tryBindWindow(ipcRenderer, type)
     // 初始化api调用函数. 用于统一调用
-    baseApi.init(type,
-        ipcRenderer.send,
-        ipcRenderer.on,
-        actionMap.apiControl.code,
-        actionMap.apiControl.resCode);
+
 
     ipcRenderer.on(
     windowAction.bindSignId.code,
@@ -67,7 +64,17 @@ export function windowInit(app: App, type: string){
             console.warn(`未知的窗口绑定 ${data.type}`);
             return;
         }
-        baseApi.changeSign(data.signId);
+        ipcRenderer.on(actionMap.apiControl.resCode, (_: Electron.IpcRendererEvent, apiData: ResponseData<any> | NotifyData)=>{
+            baseApi.apiControllerHandler(_ , apiData)
+        })
+        baseApi.init(type,
+            ipcRenderer.send,
+            ipcRenderer.on,
+            actionMap.apiControl.code,
+            actionMap.apiControl.resCode,
+            data.signId
+        );
+
         app.config.globalProperties.$winHandle = registerWinHandle(ipcRenderer, data.signId);
         console.log(   `窗口绑定:${windowAction.bindSignId.resCode}` );
         ipcRenderer.send(windowAction.bindSignId.resCode, data.signId);

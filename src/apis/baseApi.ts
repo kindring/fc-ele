@@ -61,15 +61,19 @@ export class ApiController {
     logFn: (...args: any[]) => void = console.log
     constructor() {
     }
-    init(type: string, sendCallback: SendFunction, listenerCallback: ListenerFunction, sendKey: string, listerKey: string){
+    init(type: string, sendCallback: SendFunction, listenerCallback: ListenerFunction, sendKey: string, listerKey: string, signId: string){
         this.isInit = true
         this.type = type
         this.sendCallback = sendCallback
         this.listenerCallback = listenerCallback
         this.sendKey = sendKey
         this.listenerKey = listerKey
-        this.listenerCallback(listerKey, this.apiControllerHandler)
+        this.signId = signId
+
+        // listenerCallback(listerKey, this.apiControllerHandler)
         this.sendTasks.forEach(requestData => {
+            requestData.signId = this.signId
+            console.log(`[I] sendTasks: ${JSON.stringify(requestData)}`)
             sendCallback(sendKey, requestData)
             this.refreshTimeout(requestData.callId, requestData.timeout)
         })
@@ -106,8 +110,9 @@ export class ApiController {
         }
         return this.buildNotifyId(action)
     }
-    private apiControllerHandler = (_:any, data: ResponseData<any> | NotifyData) =>
+    public apiControllerHandler = (_:any, data: ResponseData<any> | NotifyData) =>
     {
+        console.log(`[I] apiControllerHandler: ${JSON.stringify(data)}`)
         switch(data.type){
             case ApiType.res:
                 if(this.calls[data.callId]){
@@ -264,6 +269,7 @@ export class ApiController {
      * @param signId
      */
     changeSign(signId: string) {
+        console.log(`[I] changeSign: ${signId}`)
         this.signId = signId
     }
 
@@ -274,7 +280,7 @@ export class ApiController {
      * @param params
      * @param timeout
      */
-    sendQuery(action: string, params: any, timeout: number = 5000): [callId: string, Promise<ResponseData<any>>] {
+    sendQuery(action: string, params: any, timeout: number = 10 * 1000): [callId: string, Promise<ResponseData<any>>] {
         let callId = this.buildCallId()
         let requestData: RequestData = {
             type: ApiType.req,
@@ -284,6 +290,7 @@ export class ApiController {
             callId: callId,
             timeout: timeout,
         }
+        console.log(requestData)
         if(this.isInit){
             if (this.sendCallback){
                 this.sendCallback(this.sendKey, requestData)
