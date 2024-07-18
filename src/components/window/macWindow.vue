@@ -94,7 +94,7 @@ onMounted(()=>{
           </div>
         </div>
       </div>
-      <div class="window-content" id="kui-dialog">
+      <div class="window-content" id="kui-root">
         <slot></slot>
       </div>
     </div>

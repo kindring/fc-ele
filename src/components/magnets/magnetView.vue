@@ -18,8 +18,9 @@ import {ErrorCode, ResponseData} from "@/types/apiTypes.ts";
 import MagnetTable from "@/components/magnets/magnetTable.vue";
 import KuiDialog from "@/components/public/kui-dialog.vue";
 
-
 import TimeManger from "@/components/magnets/timeMagnet.vue"
+
+import kuiMessage from "@/components/public/kui/message"
 
 initComponents()
 function initComponents() {
@@ -56,8 +57,8 @@ function eventHandler(magnetEmit: MagnetEmit<any>){
       daySelect(magnetEmit.data)
     break;
     default:
-      console.log('no match event')
-      console.log(magnetEmit)
+      kuiMessage.warning('no match event')
+      console.warn(magnetEmit)
     break;
   }
 }
@@ -175,7 +176,6 @@ function moveInitHandle(drag: Drag)
 {
   // 获取父元素的最大可用宽度
   maxWidth = comMaxWidth(drag.parent.width) || 10
-  console.log(`maxWidth ${maxWidth}`)
 }
 
 function moveHandle(magnet: Magnet, moveInfo: MoveInfo){
@@ -238,8 +238,7 @@ function saveMagnet(){
     if(magnet.changed) changeMagnets.push(magnet)
   }
   // 存储数据
-  console.log(`修改的位置的组件有 ${changeMagnets.length}`)
-
+  saveMagnets(true)
 }
 
 
@@ -247,17 +246,18 @@ async function deleteMagnetHandle(magnet: Magnet) {
   console.log(`移除磁贴 ${magnet.id}`)
   let result: ResponseData<boolean> = await deleteMagnet(magnet.id);
   if( result.code !== ErrorCode.success){
-    console.log(result.msg)
+    kuiMessage.log(result.msg)
     return
   }
   // 移除元素
   let idx = magnetItems.findIndex(item => item.id === magnet.id)
   if (idx < 0)
   {
-    console.log(`no match magnet ${magnet.id}`)
+    kuiMessage.error(`no match magnet ${magnet.id}`)
     return
   }
   magnetItems.splice(idx, 1)
+  kuiMessage.success(`移除磁贴成功`);
   // magnetItems.
 }
 
@@ -279,7 +279,7 @@ function setIsSite(value: boolean = false) {
 
 async function addMagnetHandle(addMagnetInfo: AddMagnetInfo)
 {
-  console.log(`add magnet type:${addMagnetInfo.type} size:${addMagnetInfo.size}`)
+  // console.log(`add magnet type:${addMagnetInfo.type} size:${addMagnetInfo.size}`)
   setIsSite(false)
   setIsOpen(false)
   // 生成新的组件
@@ -313,11 +313,17 @@ async function addMagnetHandle(addMagnetInfo: AddMagnetInfo)
   myEditMode.value = true;
 }
 
-async function saveMagnets(){
+async function saveMagnets(isOut: boolean = false){
   let result = await changeMagnets(magnetItems);
-  console.log('保存完成');
-  console.log(result);
-  emit('editModeChange')
+
+  if(result.code !== ErrorCode.success){
+    kuiMessage.error(`保存磁贴失败 ${result.msg}`)
+    return
+  }
+  kuiMessage.success('保存磁贴成功')
+  if(!isOut){
+    emit('editModeChange')
+  }
 }
 
 </script>

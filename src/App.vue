@@ -41,6 +41,9 @@ const pageKey = ref(homePageKey);
 const editMode = ref(false);
 function editModeChange() {
   editMode.value = !editMode.value;
+  if(!editMode.value){
+    // 重新加载磁贴数据
+  }
 }
 
 const navAction = (actionCode:string) => {
