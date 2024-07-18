@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref} from "vue";
+import {nextTick, onMounted, ref} from "vue";
 import {
   computeStyle,
   getComponent,
@@ -11,6 +11,8 @@ import {Tab, TabGroup, TabList, TabPanel, TabPanels, TransitionRoot} from "@head
 import {AddMagnetInfo, MagnetSize, ShowMagnetInfo} from "@/types/magnetType.ts";
 
 import TimeManger from "@/components/magnets/timeMagnet.vue"
+import VueDrag, {MoveInfo} from "@/components/public/vueDrag.vue";
+import {Drag} from "@/util/domDrag.ts";
 
 initComponents()
 function initComponents() {
@@ -59,7 +61,55 @@ function addMagnetHandle(){
   // 传递选择事件给父组件
 }
 
+const sideWidth = ref(0)
+let moveTimer: null | NodeJS.Timeout = null;
+let moveWait = 500;
+function moveInitHandle(drag: Drag)
+{
+  // 获取父元素的最大可用宽度
+  console.log(`moveInitHandle ---`)
+  sideWidth.value = drag.parent.width
+}
 
+
+function moveHandle( _moveInfo: MoveInfo) {
+  // 判断鼠标在元素的左半边还是右半边. 移动至边缘35%时触发
+  if (moveTimer) {
+    clearTimeout(moveTimer)
+    moveTimer = null;
+  }
+  moveTimer = setTimeout(()=>{
+    moveTimer = null;
+    let nextSelectTab = selectedTab.value;
+    let sizeKeys = Object.keys(selectMagnetInfo.value.sizes)
+    if (Math.abs(_moveInfo.left) > sideWidth.value * 0.10) {
+      // 移动至边缘35%时触发
+      console.log(`moveHandle --- 触发`)
+      // 移动至边缘35%时触发
+      if(_moveInfo.left < 0){
+        console.log(`左移`)
+        nextSelectTab++;
+      }else{
+        console.log(`右移`)
+        nextSelectTab--;
+      }
+      nextSelectTab = Math.min(Math.max(nextSelectTab, 0), sizeKeys.length - 1)
+      changeTab(nextSelectTab)
+    }
+    // 移动至边缘35%时触发
+  }, moveWait)
+
+}
+
+
+
+const isDrag = ref(false)
+onMounted(()=>{
+  isDrag.value = false
+  nextTick(()=>{
+    isDrag.value = true
+  })
+})
 
 </script>
 
@@ -109,20 +159,31 @@ function addMagnetHandle(){
                   @change="changeTab"
                   as="div"
         >
+
+
           <TabPanels class="tabs-list">
             <TabPanel v-for="(size, key) in selectMagnetInfo.sizes"
                       :key="`com-${size?.title}-${key}`"
                       class="item"
                       as="div"
             >
-              <component
-                  :is="getComponent(selectMagnetInfo.type)"
-                  :size="key"
-              ></component>
-              <div class="drop">
-
-              </div>
+              <vue-drag
+                  class="vue-drag"
+                  :open-drag="isDrag"
+                  :move-hide="true"
+                  :y-move-dom="false"
+                  :x-limit="false"
+                  :is-center="true"
+                  @init="moveInitHandle"
+                  @move="moveHandle"
+              >
+                <component
+                    :is="getComponent(selectMagnetInfo.type)"
+                    :size="key"
+                ></component>
+              </vue-drag>
             </TabPanel>
+
           </TabPanels>
           <TabList class="tabs-control">
             <Tab v-for="(size, _key, i) in selectMagnetInfo.sizes"

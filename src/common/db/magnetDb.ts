@@ -89,7 +89,8 @@ export  function addMagnet(magnet: SavedMagnet) {
 }
 
 // 删除数据
-export  function deleteMagnet(magnetId: string) {
+export  function db_deleteMagnet(magnetId: string) {
+    console.log(`删除磁贴: ${magnetId}`)
     return db?.delete().from('magnets').where('id', magnetId)
 }
 

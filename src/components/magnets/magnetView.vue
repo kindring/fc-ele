@@ -13,7 +13,7 @@ import {
 import {Calendar} from "@/util/time.ts";
 import {CollisionDirection, CollisionResult, detectCollisionDirection, Drag, Rect} from "@/util/domDrag.ts";
 import IconSvg from "@/components/public/icon/iconSvg.vue";
-import {changeMagnets, fetchMagnetList} from "@/apis/magnetControl.ts";
+import {changeMagnets, deleteMagnet, fetchMagnetList} from "@/apis/magnetControl.ts";
 import {ErrorCode, ResponseData} from "@/types/apiTypes.ts";
 import MagnetTable from "@/components/magnets/magnetTable.vue";
 import KuiDialog from "@/components/public/kui-dialog.vue";
@@ -27,7 +27,7 @@ function initComponents() {
 }
 
 
-const magnetItems = reactive([]) as Magnet[]
+let magnetItems = reactive([]) as Magnet[]
 const magnetEl = ref();
 let maxWidth = 10;
 
@@ -242,8 +242,23 @@ function saveMagnet(){
 
 }
 
-function deleteMagnet(magnet: Magnet) {
+
+async function deleteMagnetHandle(magnet: Magnet) {
   console.log(`移除磁贴 ${magnet.id}`)
+  let result: ResponseData<boolean> = await deleteMagnet(magnet.id);
+  if( result.code !== ErrorCode.success){
+    console.log(result.msg)
+    return
+  }
+  // 移除元素
+  let idx = magnetItems.findIndex(item => item.id === magnet.id)
+  if (idx < 0)
+  {
+    console.log(`no match magnet ${magnet.id}`)
+    return
+  }
+  magnetItems.splice(idx, 1)
+  // magnetItems.
 }
 
 
@@ -322,7 +337,6 @@ async function saveMagnets(){
        :open-drag="myEditMode"
        :move-hide="true"
        :y-limit="false"
-       :hide-move="true"
        @init="moveInitHandle"
        @move-start="(_moveInfo)=>{moveStartHandle(magnet)}"
        @move="(moveInfo)=>{moveHandle(magnet, moveInfo)}"
@@ -337,7 +351,7 @@ async function saveMagnets(){
         <div class="magnet-mask" v-show="editMode"></div>
       </div>
 
-      <div class="magnet-remove apple-btn" v-show="editMode" @click.stop="deleteMagnet(magnet)" @mousedown.stop="deleteMagnet(magnet)">
+      <div class="magnet-remove apple-btn" v-show="editMode" @click.stop="deleteMagnetHandle(magnet)" @mousedown.stop="deleteMagnetHandle(magnet)">
         <icon-svg icon-name="remove"></icon-svg>
       </div>
 
@@ -455,10 +469,13 @@ async function saveMagnets(){
   opacity: 0.7;
 }
 .edit-control {
-  position: absolute;
+  position: sticky;
   top: 15px;
   right: 10px;
   display: flex;
+  width: auto;
+  height: 40px;
+  align-items: center;
 }
 
 

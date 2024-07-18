@@ -57,20 +57,10 @@ onMounted(()=>{
     }
   });
 
-  drag.addEventListener('mousedown', (evt: MouseEvent) => {
-    console.log("鼠标按下")
-    console.log(  evt)
-  }, {
-    capture: true,
-    passive: true
-  })
+
 
   // body 添加鼠标监听事件
-  document.body.addEventListener('mousedown', (evt: MouseEvent) => {
-    console.log("body 鼠标按下")
-    console.log(  evt)
-  }, {
-  })
+
 })
 
 

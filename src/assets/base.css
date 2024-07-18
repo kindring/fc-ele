@@ -293,6 +293,17 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
+}
+.tabs-w .vue-drag{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .tabs-w .item{
     flex-shrink: 0;
@@ -324,7 +335,9 @@
     height: calc(100% - 30px);
     padding: 0 5px;
     display: flex;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
 }
 .tabs-w .tabs-list .item{
     width: 100%;

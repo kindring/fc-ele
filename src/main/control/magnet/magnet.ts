@@ -1,4 +1,4 @@
-import {addMagnet, changeMagnets, getMagnetList} from "@/common/db/magnetDb.ts";
+import {addMagnet, changeMagnets, db_deleteMagnet, getMagnetList} from "@/common/db/magnetDb.ts";
 import {ApiType, ErrorCode, RequestData, ResponseData} from "@/types/apiTypes.ts";
 import {ChangeSaveMagnet, SavedMagnet} from "@/types/magnetType.ts";
 import {handle} from "@/util/promiseHandle.ts";
@@ -81,4 +81,45 @@ export async function c_magnet_batch_update(requestData: RequestData){
         data: null,
     }
     return responseData;
+}
+
+
+export async function c_magnet_delete(requestData: RequestData){
+    let responseData: ResponseData<any>
+    let data = requestData.data as {magnetId: string};
+    if (!data.magnetId) {
+        responseData = {
+            type: ApiType.res,
+            code: ErrorCode.params,
+            callId: requestData.callId,
+            action: requestData.action,
+            msg: '磁贴id为空',
+            data: null
+        }
+        return responseData;
+    }
+    let [err, _result] = await handle(db_deleteMagnet(data.magnetId));
+    if (err) {
+        err = err as Error;
+        logger.error(`[删除数据失败] ${err.message}`)
+        responseData = {
+            type: ApiType.res,
+            code: ErrorCode.db,
+            callId: requestData.callId,
+            action: requestData.action,
+            msg: err.message,
+            data: null
+        }
+        return responseData;
+    }
+    responseData = {
+        type: ApiType.res,
+        code: ErrorCode.success,
+        callId: requestData.callId,
+        action: requestData.action,
+        msg: '',
+        data: true,
+    }
+    return responseData;
+
 }

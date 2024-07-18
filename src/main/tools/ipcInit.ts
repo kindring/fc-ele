@@ -10,7 +10,7 @@ function bindAction(action: IpcAction, bindReplay: boolean = false) {
     logger.info(`绑定ipc事件:${code}-${action.title}`);
     ipcMain.on(code, async (_, arg) => {
         // console.log(event);
-        logger.info(`${code}-${action.title},参数:${arg}`);
+        logger.info(`${code}-${action.title},参数:${JSON.stringify(arg)}`);
         let [err,res] = await handle(
             hook.runHook(code, arg)
         );
