@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, watch} from 'vue'
+import {onMounted, ref, watch} from 'vue'
 import {Drag, MouseInfo, ElementInfo} from '@/util/domDrag.ts'
 
 export interface MoveInfo extends MouseInfo{
@@ -19,6 +19,24 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  // 是否移动原有dom, 用于在某些场景模拟手势
+  xMoveDom: {
+    type: Boolean,
+    default: true
+  },
+  yMoveDom: {
+    type: Boolean,
+    default: true
+  },
+  // 移动时如果有滚动条是否自动移动
+  xScroll: {
+    type: Boolean,
+    default: false
+  },
+  yScroll: {
+    type: Boolean,
+    default: false
+  },
   xLimit: {
     type: Boolean,
     default: true
@@ -26,6 +44,10 @@ const props = defineProps({
   yLimit: {
     type: Boolean,
     default: true
+  },
+  isCenter: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -38,12 +60,17 @@ const emits = defineEmits<{
 
 let drag: Drag | null = null
 
+onMounted(()=>{
+  if (props.openDrag){
+    initDrag()
+  }
+})
 function initDrag() {
-  console.log(` start init drag`)
+  // console.log(` start init drag`)
   let dragEle = dragRef.value
   if (!dragEle) return console.error('dragElement is null !!!!!!!!!! ')
   if(!drag){
-    drag = new Drag(dragEle)
+    drag = new Drag(dragEle, props.isCenter)
   }
   drag.on(Drag.Event.moveStart, moveStartHandle)
   drag.on(Drag.Event.move, moveHandle)
@@ -69,10 +96,16 @@ let parentPositionValue = ""
 // 直接添加至父元素中的临时拷贝dom
 let templateElement: HTMLElement | null  = null;
 
-function _setDomStyle(el: HTMLElement, mouseInfo: MouseInfo, dragInfo: ElementInfo, isEnd: boolean = false,
-                      xLimit: boolean = false, yLimit: boolean = false): MoveInfo{
+function _setDomStyle( el: HTMLElement, mouseInfo: MouseInfo, dragInfo: ElementInfo, isEnd: boolean = false,
+                      xLimit: boolean = false, yLimit: boolean = false,
+                       xScroll: boolean = false, yScroll: boolean = false,
+                       isMoveDom_x : boolean = true,
+                       isMoveDom_y : boolean = true,
+): MoveInfo{
+
   let elLeft = mouseInfo.x - dragInfo.diffX -  dragInfo.parentLeft;
   let elTop = mouseInfo.y - dragInfo.diffY -  dragInfo.parentTop;
+
   let parentEl = el.offsetParent as HTMLElement || document.body;
 
   let parentTotalWidth = parentEl.scrollWidth;
@@ -82,50 +115,58 @@ function _setDomStyle(el: HTMLElement, mouseInfo: MouseInfo, dragInfo: ElementIn
   let parentScrollTop = parentEl.scrollTop || 0;
   let parentScrollLeft = parentEl.scrollLeft || 0;
 
-  elLeft = Math.max(0, elLeft);
-  elTop = Math.max(0, elTop);
 
   if (xLimit)
   {
+    elLeft = Math.max(0, elLeft);
     elLeft = Math.min(elLeft, parentTotalWidth - dragInfo.width);
   }
   if (yLimit)
   {
+    elTop = Math.max(0, elTop);
     elTop = Math.min(elTop, parentTotalHeight - dragInfo.height);
   }
 
-  if (elLeft + dragInfo.width > parentWidth)
-  {
-    parentEl.scrollLeft = elLeft + dragInfo.width - parentWidth;
-  }if (elLeft < parentScrollLeft)
-  {
-    parentEl.scrollLeft = elLeft;
-  }
-
-  if (elTop + dragInfo.height > parentHeight + parentScrollTop)
-  {
-    // console.log(` 滚动条更改 ${elTop} ${parentScrollTop}`)
-    parentEl.scrollTop = elTop + dragInfo.height - parentHeight;
-  }if (elTop < parentScrollTop)
-  {
-    parentEl.scrollTop = elTop;
-  }
+  // 移动dom元素
 
 
+    if(isMoveDom_x)
+    {
+      if(xScroll){
+        if (elLeft + dragInfo.width > parentWidth)
+        {
+          parentEl.scrollLeft = elLeft + dragInfo.width - parentWidth;
+        }if (elLeft < parentScrollLeft)
+        {
+          parentEl.scrollLeft = elLeft;
+        }
+      }
+      el.style.left = `${elLeft}px`;
+    }
 
+    if(isMoveDom_y) {
+      el.style.top = `${elTop}px`;
+      if (yScroll) {
+        if (elTop + dragInfo.height > parentHeight + parentScrollTop) {
+          // console.log(` 滚动条更改 ${elTop} ${parentScrollTop}`)
+          parentEl.scrollTop = elTop + dragInfo.height - parentHeight;
+        }
+        if (elTop < parentScrollTop) {
+          parentEl.scrollTop = elTop;
+        }
+      }
+    }
+    if(isMoveDom_x || isMoveDom_y){
+      el.style.position = "absolute";
+      if (isEnd)
+      {
+        el.style.transition = "all 0.3s";
+      }else{
+        // 移除transition
+        el.style.transition = "none";
+      }
+    }
 
-  el.style.position = "absolute";
-  el.style.left = `${elLeft}px`;
-  el.style.top = `${elTop}px`;
-
-
-  if (isEnd)
-  {
-    el.style.transition = "all 0.3s";
-  }else{
-    // 移除transition
-    el.style.transition = "none";
-  }
 
   let moveInfo = {
     ...mouseInfo,
@@ -138,7 +179,7 @@ function _setDomStyle(el: HTMLElement, mouseInfo: MouseInfo, dragInfo: ElementIn
 
 
 function moveStartHandle(mouseInfo: MouseInfo, dragInfo: ElementInfo){
-  console.log('开始移动')
+  // console.log('开始移动')
   // console.log(mouseInfo)
   // console.log(dragInfo)
   // 存储当前元素的样式
@@ -153,7 +194,13 @@ function moveStartHandle(mouseInfo: MouseInfo, dragInfo: ElementInfo){
   }
   templateElement = el.cloneNode(true) as HTMLElement;
 
-  let moveInfo = _setDomStyle(templateElement, mouseInfo, dragInfo, false, props.xLimit, props.yLimit);
+  let moveInfo = _setDomStyle(
+      templateElement,
+      mouseInfo, dragInfo, false,
+      props.xLimit, props.yLimit,
+      props.xScroll, props.yScroll,
+      props.xMoveDom, props.yMoveDom
+  );
   emits('move-start', moveInfo)
 
   // 如果父元素无定位根基属性
@@ -174,21 +221,27 @@ function moveStartHandle(mouseInfo: MouseInfo, dragInfo: ElementInfo){
 function moveHandle(mouseInfo: MouseInfo, dragInfo: ElementInfo){
   // console.log(mouseInfo)
   // console.log(dragInfo)
-  if(templateElement == null) return console.log("未知的dom元素")
+  if(templateElement == null) return console.error("未知的 drag dom元素")
   // 组件超出限制
 
-  let moveInfo = _setDomStyle(templateElement, mouseInfo, dragInfo, false, props.xLimit, props.yLimit);
+  let moveInfo = _setDomStyle(
+      templateElement, mouseInfo,
+      dragInfo, false,
+      props.xLimit, props.yLimit,
+      props.xScroll, props.yScroll,
+      props.xMoveDom, props.yMoveDom
+  );
   emits('move', moveInfo)
 
 }
 
 function moveEndHandle(mouseInfo: MouseInfo, dragInfo: ElementInfo){
-  console.log('结束移动')
+  // console.log('结束移动')
   // console.log(mouseInfo)
   // console.log(dragInfo)
   let el = dragInfo.el;
   if(!el){
-    return console.log("未知的父级元素")
+    return console.error("未知的父级元素")
   }
   let parentEl = el.offsetParent as HTMLElement;
   if (!parentEl)
@@ -196,10 +249,16 @@ function moveEndHandle(mouseInfo: MouseInfo, dragInfo: ElementInfo){
     parentEl = document.body;
   }
 
-  if(templateElement == null) return console.log("未知的dom元素")
+  if(templateElement == null) return console.error("未知的dom元素")
   let element = templateElement;
   // 恢复元素位置
-  let moveInfo = _setDomStyle(templateElement, mouseInfo, dragInfo, true, props.xLimit, props.yLimit);
+  let moveInfo = _setDomStyle(
+      templateElement, mouseInfo,
+      dragInfo, true,
+      props.xLimit, props.yLimit,
+      props.xScroll, props.yScroll,
+      props.xMoveDom, props.yMoveDom
+  );
   emits('move-end', moveInfo)
   // 添加动画
 

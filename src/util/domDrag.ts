@@ -122,12 +122,14 @@ export function detectCollisionDirection(rect1: Rect, rect2: Rect): CollisionRes
 
 
 export class Drag{
-    constructor(el: HTMLElement) {
+    constructor(el: HTMLElement, center: boolean = false) {
         // 绑定事件
         this.el = el;
+        this.isCenter = center;
         this.bindEvent();
     }
     el: HTMLElement;
+    isCenter: boolean;
     isMove: boolean = false;
     // 延迟时间, 同一时间内的合并为同一
     parent: ElementInfo = {
@@ -207,8 +209,13 @@ export class Drag{
         this.isMove = true;
 
         // 计算元素偏移差值
-        const diffX = e.offsetX;
-        const diffY =  e.offsetY;
+        let diffX = e.offsetX;
+        let diffY =  e.offsetY;
+        if(this.isCenter){
+            // 偏移值应该在元素的正中间
+            diffX = this.thisInfo.width / 2;
+            diffY = this.thisInfo.height / 2;
+        }
         let mouseInfo: MouseInfo = {
             x: x,
             y: y
