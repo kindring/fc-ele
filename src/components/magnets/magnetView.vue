@@ -221,7 +221,6 @@ function moveEndHandle(magnet: Magnet, moveInfo: MoveInfo)
   }
   magnet.selected = false
   magnet.changed = true
-
 }
 
 watch(()=>props.editMode, (val)=>{
@@ -231,14 +230,13 @@ watch(()=>props.editMode, (val)=>{
   }
 })
 // 存储元素信息
-function saveMagnet(){
-  let changeMagnets = [];
-  for(let magnet of magnetItems)
-  {
-    if(magnet.changed) changeMagnets.push(magnet)
+async function saveMagnet(){
+  let result = await changeMagnets(magnetItems);
+  if(result.code !== ErrorCode.success){
+    kuiMessage.error(`保存磁贴失败 ${result.msg}`)
+    return
   }
-  // 存储数据
-  saveMagnets(true)
+  kuiMessage.success('保存磁贴成功')
 }
 
 
@@ -313,17 +311,10 @@ async function addMagnetHandle(addMagnetInfo: AddMagnetInfo)
   myEditMode.value = true;
 }
 
-async function saveMagnets(isOut: boolean = false){
-  let result = await changeMagnets(magnetItems);
 
-  if(result.code !== ErrorCode.success){
-    kuiMessage.error(`保存磁贴失败 ${result.msg}`)
-    return
-  }
-  kuiMessage.success('保存磁贴成功')
-  if(!isOut){
-    emit('editModeChange')
-  }
+async function saveMagnetHandle(){
+  // 添加防抖
+  emit('editModeChange')
 }
 
 </script>
@@ -368,7 +359,7 @@ async function saveMagnets(isOut: boolean = false){
       <div class="apple-btn mx-0.5" @click="setIsOpen(true)">
         <icon-svg icon-name="add"></icon-svg>
       </div>
-      <div class="apple-btn mx-0.5" @click="()=>{saveMagnets()}"> 完成</div>
+      <div class="apple-btn mx-0.5" @click="()=>{saveMagnetHandle()}"> 完成</div>
     </div>
 
 
