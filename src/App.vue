@@ -1,30 +1,46 @@
 <script setup lang="ts">
 // import HelloWorld from './components/HelloWorld.vue'
 
-import {onMounted, ref} from "vue";
+import {ComponentInternalInstance, getCurrentInstance, nextTick, onMounted, ref} from "vue";
 import MacWindow from "./components/window/macWindow.vue";
 import MagnetView from "./components/magnets/magnetView.vue";
 import AppleBar from "@/components/appleBar/appleBar.vue";
 import BarIconBtn from "@/components/appleBar/barIconBtn.vue";
 import SettingView from "@/components/settingView.vue";
 import {NavItem} from "@/components/appleBar/appleBar.ts";
+import message from "@/components/public/kui/message";
+import ImageControl from "@/components/image/imageControl.vue";
+import {ApplicationInfo} from "@/types/application.ts";
+import AppList from "@/components/window/app-list.vue";
+import AppWindow from "@/components/window/app-window.vue";
+import {windowAction} from "@/tools/IpcCmd.ts";
+import {runningApplications, testApplications} from "@/util/AppManag.ts";
 
+const { proxy } = getCurrentInstance() as ComponentInternalInstance
 onMounted(() => {
 
 });
 
 let transitionName = ref("slide-right");
-const settingPageKey = 'setting';
 const activeIndex = ref(0);
+const settingPageKey = 'setting';
 const homePageKey = 'home';
+const imagePageKey = 'image';
+const musicPageKey = 'music';
 let navItems:NavItem[] = [
-
   {
-    id: 1,
-    name: '首页',
-    actionCode: homePageKey,
-    description: '返回首页',
-    icon: 'home',
+    id: 3,
+    name: '影音中心',
+    actionCode: musicPageKey,
+    description: '影音中心',
+    icon: 'music',
+  },
+  {
+    id: 3,
+    name: '照片管理',
+    actionCode: imagePageKey,
+    description: '图库工具',
+    icon: 'photo',
   },
   {
     id: 2,
@@ -35,10 +51,69 @@ let navItems:NavItem[] = [
   },
 ]
 
+const runningApplications = refrue;
+
+
 
 const title = ref("fc-ele");
 const pageKey = ref(homePageKey);
 const editMode = ref(false);
+const isFull = ref(false);
+const isDing = ref(false);
+const isBarHidden = ref(false);
+
+const AppContent = ref<HTMLElement | null>(null);
+const parentWidth = ref(0);
+const parentHeight = ref(0);
+
+function getParentSize() {
+  nextTick(()=>{
+
+    const el = AppContent.value;
+    if(!el){
+      return console.error('windowRef is null !!!!!!!!!! ');
+    }
+    let parent = el.parentElement;
+    if(!parent)
+    {
+      parent = document.body;
+    }
+    parentWidth.value = parent.clientWidth;
+    parentHeight.value = parent.clientHeight;
+    message.log(`parentWidth: ${parentWidth.value} H: ${parentHeight.value}`);
+  })
+
+}
+onMounted(() => {
+  getParentSize();
+  // document.addEventListener('resize', getParentSize);
+})
+
+const dingHandle = () => {
+  proxy?.$winHandle(isDing.value? windowAction.unDing : windowAction.ding)
+  isDing.value = !isDing.value
+}
+const minHandle = () => {
+  proxy?.$winHandle(windowAction.min)
+}
+const maxHandle = async () => {
+
+  let res = await proxy?.$winHandle(isFull.value? windowAction.unMax : windowAction.max)
+  if(res){
+    message.log('maxHandle success');
+  }else{
+    message.log('maxHandle fail');
+  }
+  isFull.value = !isFull.value
+  // todo 添加事件监听对应的事件
+
+  setTimeout(()=>{
+    getParentSize()
+  })
+}
+const closeHandle = () => {
+  proxy?.$winHandle(windowAction.close)
+}
 function editModeChange() {
   editMode.value = !editMode.value;
   if(!editMode.value){
@@ -47,10 +122,10 @@ function editModeChange() {
 }
 
 const navAction = (actionCode:string) => {
-  if(editMode){
+  if(editMode.value){
     return console.log('is edit mode')
   }
-  console.log(`action: ${actionCode}`);
+  // message.info(`navAction: ${actionCode}`);
   // 寻找actionCode对应的 index
   let index = navItems.findIndex((item) => item.actionCode === actionCode);
   if (index === -1) {
@@ -68,42 +143,105 @@ const navAction = (actionCode:string) => {
     case settingPageKey:
       title.value = navItems[index].name;
       break;
+    case musicPageKey:
+      title.value = navItems[index].name;
+      title.value = "音乐中心"
+      break;
+    case imagePageKey:
+      title.value = navItems[index].name;
+      title.value = "图库工具"
+      break;
     default:
       pageKey.value = homePageKey;
       title.value = 'fc-ele';
       break;
   }
-  console.log(`pageKey: ${pageKey.value}`);
+  // message.log(`pageKey: ${pageKey.value}`);
 }
 
+
+// 打开应用中心
+const isOpenApplicationCenter = ref(false);
+function openApplicationCenter() {
+  message.log('打开应用中心');
+  if(isOpenApplicationCenter.value){
+    return closeApplicationCenter();
+  }
+  isOpenApplicationCenter.value = true;
+  // 设置全局监听事件, 不是当前dom则关闭
+}
+function closeApplicationCenter() {
+  message.log('关闭应用中心');
+  isOpenApplicationCenter.value = false;
+}
+
+function closeAppHandle(){
+  console.log('close app');
+}
 </script>
 
 <template>
-  <mac-window :title="title" :icon="'home'">
+  <mac-window
+      :title="title"
+      :icon="'home'"
+      :is-ding="isDing"
+      :is-full="isFull"
+      @close="closeHandle"
+      @min="minHandle"
+      @max="maxHandle"
+      @ding="dingHandle"
+  >
 
     <div class="image-bg">
       <img src="./assets/images/bg.jpg" alt="">
     </div>
-    <Transition :name="transitionName">
-      <div class="full" v-if="pageKey === homePageKey">
-        <div class="app-content">
-          <magnet-view
-              :edit-mode="editMode"
-              @edit-mode-change="editModeChange"
-          />
-        </div>
-      </div>
-      <setting-view v-else-if="pageKey === settingPageKey"></setting-view>
-    </Transition>
 
-    <div class="app-bar">
+    <div class="full" id="kui-root" ref="AppContent">
+      <Transition :name="transitionName">
+        <div class="full" v-if="pageKey === homePageKey">
+          <div class="app-content">
+            <magnet-view
+                :edit-mode="editMode"
+                @edit-mode-change="editModeChange"
+            />
+            <app-window
+                :min-height="480"
+                :min-width="640"
+                :parent-width="parentWidth"
+                :parent-height="parentHeight"
+                @close="closeAppHandle"
+            >
+              app
+            </app-window>
+          </div>
+        </div>
+
+
+        <image-control v-else-if="pageKey === imagePageKey"></image-control>
+        <setting-view v-else-if="pageKey === settingPageKey"></setting-view>
+      </Transition>
+    </div>
+
+    <div :class="`app-bar ${isBarHidden?'app-bar-hidden':''}`">
       <apple-bar
           :nav-items="navItems"
           :active="pageKey"
           :hide-time="3000"
+          :prevent-hide="isOpenApplicationCenter"
+          @input="(isHidden) => {isBarHidden = isHidden}"
           @action="navAction"
       >
+        <template #left>
+          <bar-icon-btn
+              icon-name="window"
+              :active="editMode"
+              @click.native="openApplicationCenter"
+          >
+          </bar-icon-btn>
+        </template>
+
         <bar-icon-btn
+            v-if="pageKey === homePageKey"
             icon-name="edit"
             :active="editMode"
             @click.native="editModeChange"
@@ -112,6 +250,13 @@ const navAction = (actionCode:string) => {
       </apple-bar>
     </div>
 
+    <div class="event-mask"
+         v-if="isOpenApplicationCenter"
+         @click="closeApplicationCenter">
+    </div>
+    <div class="start-window" v-show="isOpenApplicationCenter">
+      <app-list :app-list="testApplications"></app-list>
+    </div>
   </mac-window>
 </template>
 
@@ -133,6 +278,12 @@ const navAction = (actionCode:string) => {
   bottom: 0;
   z-index: 1000;
 }
+.app-bar-hidden{
+  width: auto;
+  height: 30px;
+  left: 50%;
+  transform: translate(-50%, 0);
+}
 
 @media screen and (max-width: 768px) {
   .app-content {
@@ -142,6 +293,24 @@ const navAction = (actionCode:string) => {
     position: relative;
     bottom: 0;
   }
+}
+
+.start-window{
+  width: 70%;
+  height: 70%;
+  position: absolute;
+  bottom: 80px;
+  left: 5%;
+}
+.start-window::before{
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-background-mute);
+  border-radius: 3px;
+  box-shadow: 0 0 3px #000;
+  opacity: 0.9;
 }
 
 </style>

@@ -17,30 +17,39 @@ import {NotifyData, ResponseData} from "@/types/apiTypes.ts";
 //     },
 // };
 
-function winHandle(ipc: Electron.IpcRenderer, windowName: string, action: IpcAction): boolean{
-    let sendCode = action.code;
-    try {
-        ipc.send(sendCode, windowName);
-        return true;
-    }catch (e){
-        return false;
-    }
+function winHandle(ipc: Electron.IpcRenderer, windowName: string, action: IpcAction): Promise<boolean>{
+    return new Promise((resolve, _)=>{
+        let sendCode = action.code;
+        try {
+            ipc.send(sendCode, windowName);
+            ipc.on(sendCode, (_, res)=>{
+                resolve(res);
+            })
+        }catch (e){
+            console.error(e)
+            resolve(false)
+        }
+    })
 }
 
-function registerWinHandle(ipc: Electron.IpcRenderer, windowName: string): (action: IpcAction)=> boolean
+function registerWinHandle(ipc: Electron.IpcRenderer, windowName: string): (action: IpcAction) => Promise<any>
 {
     windowName = windowName.toString();
     return winHandle.bind(null, ipc, windowName);
 }
 
 
-function tryBindWindow(ipc: Electron.IpcRenderer, type: string): (action: IpcAction)=>void
+function tryBindWindow(ipc: Electron.IpcRenderer, type: string): (action: IpcAction)=>Promise<boolean>
 {
-    return (_: IpcAction): boolean =>{
-        console.log(`未绑定窗口, 等待绑定`);
-        ipc.send(windowAction.bindSignId.code, type)
-        return false;
+
+    return (_action): Promise<boolean> =>{
+        return new Promise((resolve, _)=>{
+            console.log(`未绑定窗口, 等待绑定`);
+            ipc.send(windowAction.bindSignId.code, type)
+            resolve(true)
+        })
     }
+
 }
 
 

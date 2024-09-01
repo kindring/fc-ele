@@ -1,5 +1,5 @@
 // 弹窗类型 type: success, error, info, warning
-import {AppContext} from "vue";
+import {App, AppContext} from "vue";
 
 export enum NotifyType {
     success = 'success',
@@ -39,4 +39,13 @@ export interface MessageFn extends messageFn {
     warn: messageFn;
     warning: messageFn;
     loading: messageFn;
+    install: (app: App)=>void;
+}
+
+
+export enum ToolTipPosition {
+    top = 'top',
+    bottom = 'bottom',
+    left = 'left',
+    right = 'right',
 }

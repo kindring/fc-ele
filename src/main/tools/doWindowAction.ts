@@ -100,9 +100,10 @@ export function minWin(sign: string) {
 
 /**
  * 最大化窗口或者恢复窗口
+ * @param ipcEvent
  * @param {String} sign 窗口标记
  *
-*/
+ */
 export function maxWin(sign: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
         let winObj = AppControl.findWin(sign);

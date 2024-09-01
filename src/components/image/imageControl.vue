@@ -4,7 +4,7 @@
 
 <template>
 <div class="page-view">
-
+  music
 </div>
 </template>
 

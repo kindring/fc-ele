@@ -8,7 +8,7 @@ let logger = Logger.logger('ipcInit', 'info');
 function bindAction(action: IpcAction, bindReplay: boolean = false) {
     let code = bindReplay?action.resCode:action.code;
     logger.info(`绑定ipc事件:${code}-${action.title}`);
-    ipcMain.on(code, async (_, arg) => {
+    ipcMain.on(code, async (_ipcEvent: Electron.IpcMainEvent, arg) => {
         // console.log(event);
         logger.info(`${code}-${action.title},参数:${JSON.stringify(arg)}`);
         let [err,res] = await handle(
@@ -18,6 +18,7 @@ function bindAction(action: IpcAction, bindReplay: boolean = false) {
             logger.error(err);
         }
         logger.debug(`${code}-${action.title},返回:${res}`);
+        _ipcEvent.reply(code, res);
     });
 }
 
@@ -46,8 +47,6 @@ export function initIpc() {
     bindAction(windowAction.restore);
     bindAction(windowAction.openSetting);
     bindAction(actionMap.exitApp);
-    bindAction(windowAction.enableIgnoreMouse);
-    bindAction(windowAction.disableIgnoreMouse);
     bindAction(actionMap.apiControl);
 }
 
