@@ -1,5 +1,5 @@
 export interface NavItem {
-    id: number,
+    id: string,
     name: string,
     actionCode: string,
     description: string,

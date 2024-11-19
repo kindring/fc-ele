@@ -8,6 +8,7 @@ export interface ApplicationInfo {
     allowMulti: boolean;
     minHeight: number;
     minWidth: number;
+    description: string;
 }
 
 export interface RunApplicationInfo {
@@ -16,5 +17,4 @@ export interface RunApplicationInfo {
     show: boolean;
     full: boolean;
     index: number;
-    name: string;
 }

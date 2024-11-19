@@ -1,7 +1,16 @@
 <script setup lang="ts">
 // import HelloWorld from './components/HelloWorld.vue'
 
-import {ComponentInternalInstance, getCurrentInstance, nextTick, onMounted, ref} from "vue";
+import {
+  ComponentInternalInstance,
+  defineComponent,
+  getCurrentInstance,
+  nextTick,
+  onMounted,
+  reactive,
+  ref,
+  watch
+} from "vue";
 import MacWindow from "./components/window/macWindow.vue";
 import MagnetView from "./components/magnets/magnetView.vue";
 import AppleBar from "@/components/appleBar/appleBar.vue";
@@ -14,7 +23,7 @@ import {ApplicationInfo} from "@/types/application.ts";
 import AppList from "@/components/window/app-list.vue";
 import AppWindow from "@/components/window/app-window.vue";
 import {windowAction} from "@/tools/IpcCmd.ts";
-import {runningApplications, testApplications} from "@/util/AppManag.ts";
+import {Applications, openApp, runNavComputed, runningApplications} from "@/util/AppManag.ts";
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance
 onMounted(() => {
@@ -27,31 +36,11 @@ const settingPageKey = 'setting';
 const homePageKey = 'home';
 const imagePageKey = 'image';
 const musicPageKey = 'music';
-let navItems:NavItem[] = [
-  {
-    id: 3,
-    name: '影音中心',
-    actionCode: musicPageKey,
-    description: '影音中心',
-    icon: 'music',
-  },
-  {
-    id: 3,
-    name: '照片管理',
-    actionCode: imagePageKey,
-    description: '图库工具',
-    icon: 'photo',
-  },
-  {
-    id: 2,
-    name: '设置',
-    actionCode: settingPageKey,
-    description: '软件设置',
-    icon: 'setting',
-  },
-]
 
-const runningApplications = refrue;
+
+
+// 根据runningApplications 动态获取导航项
+
 
 
 
@@ -125,37 +114,13 @@ const navAction = (actionCode:string) => {
   if(editMode.value){
     return console.log('is edit mode')
   }
-  // message.info(`navAction: ${actionCode}`);
+  message.info(`navAction: ${actionCode}`);
   // 寻找actionCode对应的 index
   let index = navItems.findIndex((item) => item.actionCode === actionCode);
   if (index === -1) {
     return console.warn(`找不到actionCode: ${actionCode}`);
   }
   // 更改动画
-  if (index < activeIndex.value) {
-    transitionName.value = 'slide-left';
-  }else{
-    transitionName.value = 'slide-right';
-  }
-  activeIndex.value = index;
-  pageKey.value = navItems[index].actionCode;
-  switch (actionCode) {
-    case settingPageKey:
-      title.value = navItems[index].name;
-      break;
-    case musicPageKey:
-      title.value = navItems[index].name;
-      title.value = "音乐中心"
-      break;
-    case imagePageKey:
-      title.value = navItems[index].name;
-      title.value = "图库工具"
-      break;
-    default:
-      pageKey.value = homePageKey;
-      title.value = 'fc-ele';
-      break;
-  }
   // message.log(`pageKey: ${pageKey.value}`);
 }
 
@@ -177,6 +142,15 @@ function closeApplicationCenter() {
 
 function closeAppHandle(){
   console.log('close app');
+}
+
+function openApplication(key: string)
+{
+  message.log(`open app ${key}`);
+  console.log(runNavComputed);
+  console.log(runningApplications);
+  openApp(key);
+
 }
 </script>
 
@@ -224,7 +198,7 @@ function closeAppHandle(){
 
     <div :class="`app-bar ${isBarHidden?'app-bar-hidden':''}`">
       <apple-bar
-          :nav-items="navItems"
+          :nav-items="runNavComputed"
           :active="pageKey"
           :hide-time="3000"
           :prevent-hide="isOpenApplicationCenter"
@@ -255,7 +229,10 @@ function closeAppHandle(){
          @click="closeApplicationCenter">
     </div>
     <div class="start-window" v-show="isOpenApplicationCenter">
-      <app-list :app-list="testApplications"></app-list>
+      <app-list
+          :app-list="Applications"
+          @open="openApplication"
+      ></app-list>
     </div>
   </mac-window>
 </template>

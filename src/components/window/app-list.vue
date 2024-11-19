@@ -25,9 +25,9 @@ const emits = defineEmits<{
   (e: "open", id: string): void
 }>()
 
-function openApp(id: string) {
+function openApp(key: string) {
   // emit
-  emits("open", id)
+  emits("open", key)
 }
 
 </script>
@@ -37,8 +37,8 @@ function openApp(id: string) {
   <div class="list-content">
     <div class="app-list-item"
          v-for="item in showAppList"
-         :key="item.id"
-         @click="openApp(item.id)"
+         :key="item.key"
+         @click="openApp(item.key)"
     >
       <div class="list-item-icon">
         <icon-svg :icon-name="item.icon" />
