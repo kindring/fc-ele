@@ -19,11 +19,11 @@ import SettingView from "@/components/settingView.vue";
 import {NavItem} from "@/components/appleBar/appleBar.ts";
 import message from "@/components/public/kui/message";
 import ImageControl from "@/components/image/imageControl.vue";
-import {ApplicationInfo} from "@/types/application.ts";
+import {ApplicationInfo, RunApplicationInfo} from "@/types/application.ts";
 import AppList from "@/components/window/app-list.vue";
 import AppWindow from "@/components/window/app-window.vue";
 import {windowAction} from "@/tools/IpcCmd.ts";
-import {Applications, openApp, runNavComputed, runningApplications} from "@/util/AppManag.ts";
+import {Applications, closeApp, openApp, runNavComputed, runningApplications, setAppTop} from "@/util/AppManag.ts";
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance
 onMounted(() => {
@@ -115,12 +115,14 @@ const navAction = (actionCode:string) => {
     return console.log('is edit mode')
   }
   message.info(`navAction: ${actionCode}`);
-  // 寻找actionCode对应的 index
-  let index = navItems.findIndex((item) => item.actionCode === actionCode);
-  if (index === -1) {
-    return console.warn(`找不到actionCode: ${actionCode}`);
+  let runningApp: RunApplicationInfo | undefined = runningApplications.find(item=>item.id === actionCode);
+  if(!runningApp)
+  {
+    return message.error(`${actionCode} is not exist`);
   }
-  // 更改动画
+  runningApp.show = true;
+  setAppTop(runningApp);
+  // top
   // message.log(`pageKey: ${pageKey.value}`);
 }
 
@@ -140,8 +142,14 @@ function closeApplicationCenter() {
   isOpenApplicationCenter.value = false;
 }
 
-function closeAppHandle(){
+function minAppHandle(runApplication: RunApplicationInfo)
+{
+  runApplication.show = false;
+}
+
+function closeAppHandle(runApplication: RunApplicationInfo){
   console.log('close app');
+  closeApp(runApplication);
 }
 
 function openApplication(key: string)
@@ -172,27 +180,30 @@ function openApplication(key: string)
 
     <div class="full" id="kui-root" ref="AppContent">
       <Transition :name="transitionName">
-        <div class="full" v-if="pageKey === homePageKey">
+        <div class="full">
           <div class="app-content">
             <magnet-view
                 :edit-mode="editMode"
                 @edit-mode-change="editModeChange"
             />
+
             <app-window
+                v-for="item in runningApplications"
+                :key="item.id"
                 :min-height="480"
                 :min-width="640"
                 :parent-width="parentWidth"
                 :parent-height="parentHeight"
-                @close="closeAppHandle"
+                :app-name="item.showTitle"
+                :hidden="!item.show"
+                :index="item.index"
+                @min="minAppHandle(item)"
+                @close="closeAppHandle(item)"
             >
-              app
+              ann
             </app-window>
           </div>
         </div>
-
-
-        <image-control v-else-if="pageKey === imagePageKey"></image-control>
-        <setting-view v-else-if="pageKey === settingPageKey"></setting-view>
       </Transition>
     </div>
 

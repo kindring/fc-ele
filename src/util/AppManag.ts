@@ -59,12 +59,14 @@ function genAppId(key: string, num: number = 0): string {
 function runApp(appInfo: ApplicationInfo): RunApplicationInfo {
 
     let appId = genAppId(appInfo.key + runningApplications.length)
+    console.log(appInfo.name);
     let app:RunApplicationInfo = {
         id: appId,
         key: appInfo.key,
         show: true,
         full: false,
         index: 0,
+        showTitle: appInfo.name,
     }
     return app
 }
@@ -91,10 +93,26 @@ export function openApp(key: string) {
         } else {
             app.show = true
         }
+
     }
 
 }
 
+// 将指定app设置为最上端
+export function setAppTop(app: RunApplicationInfo) {
+    for (let i = 0; i < runningApplications.length; i++)
+    {
+        let nextIndex = runningApplications[i].index - 1;
+        if (runningApplications[i].id === app.id) {
+            nextIndex = runningApplications.length
+        }
+        if (nextIndex <= 0 )
+        {
+            nextIndex = 1;
+        }
+        runningApplications[i].index = nextIndex;
+    }
+}
 export function closeApp(app: RunApplicationInfo) {
     let appIndex = runningApplications.findIndex(item => item.id === app.id)
     if (appIndex === -1) {

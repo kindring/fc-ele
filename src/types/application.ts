@@ -16,5 +16,6 @@ export interface RunApplicationInfo {
     key: string;
     show: boolean;
     full: boolean;
-    index: number;
+    index: number;// 窗口层级
+    showTitle: string;
 }

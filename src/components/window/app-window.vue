@@ -254,7 +254,7 @@ watch(()=>props.parentWidth, (_newValue, _oldValue)=>{
   </div>
   <div class="app-window-show">
     <mac-window
-        title="test"
+        :title="'test212'"
         icon="home"
         :is-full="isFull"
         :disable-margin="true"
