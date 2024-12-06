@@ -152,6 +152,11 @@ function closeAppHandle(runApplication: RunApplicationInfo){
   closeApp(runApplication);
 }
 
+function focusAppHandle(runApplication: RunApplicationInfo){
+  message.log(`focus app ${runApplication.key}`);
+  setAppTop(runApplication);
+}
+
 function openApplication(key: string)
 {
   message.log(`open app ${key}`);
@@ -199,8 +204,9 @@ function openApplication(key: string)
                 :index="item.index"
                 @min="minAppHandle(item)"
                 @close="closeAppHandle(item)"
+                @focus-window="focusAppHandle(item)"
             >
-              ann
+<!--              切换对应组件, 并且-->
             </app-window>
           </div>
         </div>

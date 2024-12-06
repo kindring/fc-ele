@@ -65,7 +65,7 @@ function runApp(appInfo: ApplicationInfo): RunApplicationInfo {
         key: appInfo.key,
         show: true,
         full: false,
-        index: 0,
+        index: runningApplications.length,
         showTitle: appInfo.name,
     }
     return app
@@ -102,14 +102,18 @@ export function openApp(key: string) {
 export function setAppTop(app: RunApplicationInfo) {
     for (let i = 0; i < runningApplications.length; i++)
     {
-        let nextIndex = runningApplications[i].index - 1;
+        let nextIndex = runningApplications[i].index;
         if (runningApplications[i].id === app.id) {
             nextIndex = runningApplications.length
-        }
-        if (nextIndex <= 0 )
+        } else
         {
-            nextIndex = 1;
+            // 如果层级过大则将其下移一层
+            if (nextIndex >= runningApplications.length)
+            {
+                nextIndex -=  1;
+            }
         }
+
         runningApplications[i].index = nextIndex;
     }
 }

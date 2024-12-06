@@ -1,5 +1,5 @@
 <script setup lang="ts" >
-import {computed, ref, watch} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import VueDrag, {MoveInfo} from "@/components/public/vueDrag.vue";
 import MacWindow from "@/components/window/macWindow.vue";
 
@@ -57,6 +57,7 @@ const emits = defineEmits<{
   (e: 'min'): void,
   (e: 'max'): void,
   (e: 'close'): void,
+  (e: 'focusWindow'): void
 }>()
 
 let startLeft = left.value;
@@ -218,6 +219,17 @@ function closeHandle() {
   emits('close')
 }
 
+function focusWindow()
+{
+  console.log('focusWindow')
+  emits('focusWindow');
+}
+
+onMounted(()=>{
+  windowRef.value?.addEventListener('click', ()=>{
+    focusWindow();
+  }, false)
+})
 
 // watch 事件
 watch(()=>props.parentWidth, (_newValue, _oldValue)=>{
