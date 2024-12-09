@@ -3,6 +3,10 @@ import {NavItem} from "@/components/appleBar/appleBar.ts";
 import message from "@/components/public/kui/message";
 import {computed, reactive} from "vue";
 
+export const AppListNames = {
+    musicIndex: 'musicIndex',
+    setting: 'setting',
+}
 export let Applications:ApplicationInfo[] = [
     {
         key: 'musicIndex',
@@ -132,7 +136,12 @@ export function closeApp(app: RunApplicationInfo) {
 }
 
 
-export function getAppComponent  (key: string): any {
+export function getAppByKey(key: string)
+{
+    return runningApplications.find(item => item.key === key)
+}
+
+export function getAppComponent (key: string): any {
     let appInfo = Applications.find(item => item.key === key)
     if(!appInfo)
     {

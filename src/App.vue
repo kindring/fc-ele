@@ -16,7 +16,7 @@ import MagnetView from "./components/magnets/magnetView.vue";
 import AppleBar from "@/components/appleBar/appleBar.vue";
 import BarIconBtn from "@/components/appleBar/barIconBtn.vue";
 import message from "@/components/public/kui/message";
-import {RunApplicationInfo} from "@/types/application.ts";
+import {ApplicationInfo, RunApplicationInfo} from "@/types/application.ts";
 import AppList from "@/components/window/app-list.vue";
 import AppWindow from "@/components/window/app-window.vue";
 import {windowAction} from "@/tools/IpcCmd.ts";
@@ -28,7 +28,7 @@ import {
   openApp,
   runNavComputed,
   runningApplications,
-  setAppTop,
+  setAppTop, AppListNames,
 } from "@/util/AppManag.ts";
 
 import musicIndex from "@/components/music/musicIndex.vue"
@@ -77,6 +77,8 @@ function getParentSize() {
 onMounted(() => {
   getParentSize();
   // document.addEventListener('resize', getParentSize);
+  setAppComponent(AppListNames.musicIndex, musicIndex);
+
 })
 
 const dingHandle = () => {
@@ -121,7 +123,6 @@ const navAction = (actionCode:string) => {
   {
     return message.error(`${actionCode} is not exist`);
   }
-  setAppComponent(runningApp.key, musicIndex);
   runningApp.show = true;
   setAppTop(runningApp);
 
