@@ -9,6 +9,8 @@ export interface ApplicationInfo {
     minHeight: number;
     minWidth: number;
     description: string;
+    component?: any;
+    componentPath: string;
 }
 
 export interface RunApplicationInfo {

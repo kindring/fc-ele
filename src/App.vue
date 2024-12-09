@@ -15,15 +15,24 @@ import MacWindow from "./components/window/macWindow.vue";
 import MagnetView from "./components/magnets/magnetView.vue";
 import AppleBar from "@/components/appleBar/appleBar.vue";
 import BarIconBtn from "@/components/appleBar/barIconBtn.vue";
-import SettingView from "@/components/settingView.vue";
-import {NavItem} from "@/components/appleBar/appleBar.ts";
 import message from "@/components/public/kui/message";
-import ImageControl from "@/components/image/imageControl.vue";
-import {ApplicationInfo, RunApplicationInfo} from "@/types/application.ts";
+import {RunApplicationInfo} from "@/types/application.ts";
 import AppList from "@/components/window/app-list.vue";
 import AppWindow from "@/components/window/app-window.vue";
 import {windowAction} from "@/tools/IpcCmd.ts";
-import {Applications, closeApp, openApp, runNavComputed, runningApplications, setAppTop} from "@/util/AppManag.ts";
+import {
+  Applications,
+  closeApp,
+  getAppComponent,
+  setAppComponent,
+  openApp,
+  runNavComputed,
+  runningApplications,
+  setAppTop,
+} from "@/util/AppManag.ts";
+
+import musicIndex from "@/components/music/musicIndex.vue"
+
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance
 onMounted(() => {
@@ -31,21 +40,13 @@ onMounted(() => {
 });
 
 let transitionName = ref("slide-right");
-const activeIndex = ref(0);
-const settingPageKey = 'setting';
-const homePageKey = 'home';
-const imagePageKey = 'image';
-const musicPageKey = 'music';
 
 
 
 // 根据runningApplications 动态获取导航项
 
 
-
-
 const title = ref("fc-ele");
-const pageKey = ref(homePageKey);
 const editMode = ref(false);
 const isFull = ref(false);
 const isDing = ref(false);
@@ -120,8 +121,10 @@ const navAction = (actionCode:string) => {
   {
     return message.error(`${actionCode} is not exist`);
   }
+  setAppComponent(runningApp.key, musicIndex);
   runningApp.show = true;
   setAppTop(runningApp);
+
   // top
   // message.log(`pageKey: ${pageKey.value}`);
 }
@@ -207,6 +210,9 @@ function openApplication(key: string)
                 @focus-window="focusAppHandle(item)"
             >
 <!--              切换对应组件, 并且-->
+              <component
+                  :is="getAppComponent(item.key)">
+              </component>
             </app-window>
           </div>
         </div>
@@ -216,7 +222,6 @@ function openApplication(key: string)
     <div :class="`app-bar ${isBarHidden?'app-bar-hidden':''}`">
       <apple-bar
           :nav-items="runNavComputed"
-          :active="pageKey"
           :hide-time="3000"
           :prevent-hide="isOpenApplicationCenter"
           @input="(isHidden) => {isBarHidden = isHidden}"
@@ -232,7 +237,6 @@ function openApplication(key: string)
         </template>
 
         <bar-icon-btn
-            v-if="pageKey === homePageKey"
             icon-name="edit"
             :active="editMode"
             @click.native="editModeChange"

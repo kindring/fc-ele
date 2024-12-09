@@ -5,7 +5,7 @@ import {computed, reactive} from "vue";
 
 export let Applications:ApplicationInfo[] = [
     {
-        key: 'music',
+        key: 'musicIndex',
         name: '音乐',
         pinyin: 'yinyue',
         en: 'music',
@@ -14,6 +14,8 @@ export let Applications:ApplicationInfo[] = [
         minHeight: 600,
         minWidth: 800,
         description: '音乐播放器',
+        component: null,
+        componentPath: '@/components/music/musicIndex.vue',
     },
     {
         key: 'setting',
@@ -25,8 +27,12 @@ export let Applications:ApplicationInfo[] = [
         minHeight: 600,
         minWidth: 800,
         description: '软件设置',
+        component: null,
+        componentPath: '@/components/music/musicIndex.vue',
     },
 ]
+
+
 
 // 已经启动的app 列表
 export let runningApplications:RunApplicationInfo[] = reactive([]);
@@ -126,19 +132,20 @@ export function closeApp(app: RunApplicationInfo) {
 }
 
 
-export function getRunAppNavigation(): NavItem[] {
-    return runningApplications.map(item => {
-        let rawAppInfo = Applications.find(appInfo => appInfo.key === item.key)
-        if(!rawAppInfo)
-        {
-            throw new Error(`app not found: ${item.key}`)
-        }
-        return {
-            id: item.id,
-            name: rawAppInfo.name,
-            icon: rawAppInfo.icon,
-            description: rawAppInfo.description,
-            actionCode: item.id
-        } as NavItem;
-    })
+export function getAppComponent  (key: string): any {
+    let appInfo = Applications.find(item => item.key === key)
+    if(!appInfo)
+    {
+        throw new Error(`app not found: ${key}`)
+    }
+    return appInfo.component
+}
+export function setAppComponent (key: string, component: any)
+{
+    let appInfo = Applications.find(item => item.key === key)
+    if(!appInfo)
+    {
+        throw new Error(`app not found: ${key}`)
+    }
+    appInfo.component = component
 }
