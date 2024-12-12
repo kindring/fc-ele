@@ -3,6 +3,8 @@ import {defineComponent, Ref, ref} from "vue";
 import IconSvg from "@/components/public/icon/iconSvg.vue";
 import {PlayList} from "@/types/musicType.ts";
 import PlayListInfo from "./common/playListInfo.vue";
+import message from "@/components/public/kui/message";
+import MusicSetting from "@/components/music/common/musicSetting.vue";
 
 defineComponent({
   name: "musicIndex"
@@ -41,9 +43,39 @@ const playList: Ref<PlayList[]> = ref<PlayList[]>([
     isTagSearch: false,
     isLike: false
   },
+  {
+    id: 'local',
+    name: "本地目录",
+    cover: "bg.jpg",
+    icon: "music",
+    description: "默认收藏夹3",
+    createTime: 0,
+    lastPlayTime: 0,
+    playCount: 0,
+    trackCount: 0,
+    isPublic: true,
+    isSync: true,
+    isTagSearch: false,
+    isLike: false
+  },
 ])
 
 const selectIndex = ref(0);
+
+const showPlayList = "showPlayList";
+const showSetting = "showSetting";
+const musicViewShow = ref(showPlayList);
+
+function changePlayList(index: number) {
+  selectIndex.value = index;
+  musicViewShow.value = showPlayList;
+}
+
+function showMusicSetting()
+{
+  message.info("show music setting");
+  musicViewShow.value = showSetting;
+}
 </script>
 
 <template>
@@ -69,7 +101,7 @@ const selectIndex = ref(0);
               v-for="(item, i) in playList"
               :key="item.id"
               :class="`list-item ${i == selectIndex?'select-item':''}` "
-              @click=""
+              @click="changePlayList(i)"
           >
             <div class="icon">
               <IconSvg :icon-name="item.icon" />
@@ -77,9 +109,15 @@ const selectIndex = ref(0);
             <span>{{item.name}}</span>
           </div>
         </div>
+
+<!--        设置-->
+        <div class="setting-group">
+          <icon-svg class="icon" @click.stop.capture="showMusicSetting" icon-name="setting"/>
+        </div>
       </div>
       <div class="play-list-info">
-        <play-list-info :play-list="playList[selectIndex]"/>
+        <play-list-info v-if="musicViewShow === showPlayList" :play-list="playList[selectIndex]"/>
+        <music-setting v-if="musicViewShow === showSetting"/>
       </div>
 
     </div>
@@ -102,6 +140,7 @@ const selectIndex = ref(0);
   width: 210px;
   height: 100%;
   box-shadow: 2px 0 3px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 .music-view{
   width: calc(100% - 210px);
@@ -175,7 +214,7 @@ const selectIndex = ref(0);
 
 .play-list {
   width: 100%;
-  height: calc(100% - 100px);
+  height: calc(100% - 140px);
   overflow-y: auto;
   padding-top: 10px;
 }
@@ -234,6 +273,17 @@ const selectIndex = ref(0);
   flex-shrink: 0;
 }
 
-
+.setting-group{
+  width: calc(100% - 20px);
+  height: 40px;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  font-size: 1.5em;
+}
+.setting-group .icon:hover{
+  cursor: pointer;
+  color: var(--color-text-money);
+}
 
 </style>

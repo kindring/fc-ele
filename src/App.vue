@@ -28,7 +28,7 @@ import {
   openApp,
   runNavComputed,
   runningApplications,
-  setAppTop, AppListNames,
+  setAppTop, AppListNames, getAppMinSize,
 } from "@/util/AppManag.ts";
 
 import musicIndex from "@/components/music/musicIndex.vue"
@@ -55,6 +55,8 @@ const isBarHidden = ref(false);
 const AppContent = ref<HTMLElement | null>(null);
 const parentWidth = ref(0);
 const parentHeight = ref(0);
+const appWindowBorderW = 30;
+const appWindowBorderH = 40;
 
 function getParentSize() {
   nextTick(()=>{
@@ -157,7 +159,6 @@ function closeAppHandle(runApplication: RunApplicationInfo){
 }
 
 function focusAppHandle(runApplication: RunApplicationInfo){
-  message.log(`focus app ${runApplication.key}`);
   setAppTop(runApplication);
 }
 
@@ -199,8 +200,8 @@ function openApplication(key: string)
             <app-window
                 v-for="item in runningApplications"
                 :key="item.id"
-                :min-height="480"
-                :min-width="640"
+                :min-height="getAppMinSize(item, 'height', parentHeight - appWindowBorderH)"
+                :min-width="getAppMinSize(item, 'width', parentWidth - appWindowBorderW)"
                 :parent-width="parentWidth"
                 :parent-height="parentHeight"
                 :app-name="item.showTitle"

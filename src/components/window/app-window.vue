@@ -34,8 +34,8 @@ const props = defineProps({
 const isFull = ref(false)
 const width = ref(props.minWidth)
 const height = ref(props.minHeight)
-const left = ref(100)
-const top = ref(100)
+const left = ref(0)
+const top = ref(0)
 
 const style = computed(() => {
   return {
@@ -144,6 +144,11 @@ function resizeHandle(item: string, moveInfo: MoveInfo) {
 
 }
 
+// 剧中窗口
+function centerHandle() {
+  left.value = (props.parentWidth - width.value) / 2;
+  top.value = (props.parentHeight - height.value) / 2;
+}
 
 function moveStart(moveInfo: MoveInfo) {
   console.log(moveInfo)
@@ -229,6 +234,8 @@ onMounted(()=>{
   windowRef.value?.addEventListener('click', ()=>{
     focusWindow();
   }, false)
+  centerHandle();
+
 })
 
 // watch 事件

@@ -16,7 +16,7 @@ export let Applications:ApplicationInfo[] = [
         icon: 'music',
         allowMulti: false,
         minHeight: 600,
-        minWidth: 800,
+        minWidth: 1000,
         description: '音乐播放器',
         component: null,
         componentPath: '@/components/music/musicIndex.vue',
@@ -139,6 +139,23 @@ export function closeApp(app: RunApplicationInfo) {
 export function getAppByKey(key: string)
 {
     return runningApplications.find(item => item.key === key)
+}
+
+export function getAppMinSize(runApp: RunApplicationInfo, type: 'width' | 'height', defaultSize: number)
+{
+    let appInfo = Applications.find(item => item.key === runApp.key)
+    let result = 200;
+    if (type === 'width')
+    {
+        appInfo?.minWidth && (result = appInfo.minWidth)
+        result = Math.min(result, defaultSize)
+    }
+    else if (type === 'height')
+    {
+        appInfo?.minHeight && (result = appInfo.minHeight)
+        result = Math.min(result, defaultSize)
+    }
+    return result
 }
 
 export function getAppComponent (key: string): any {
