@@ -75,6 +75,7 @@ function showMusicSetting()
 {
   message.info("show music setting");
   musicViewShow.value = showSetting;
+  selectIndex.value = -1;
 }
 </script>
 
@@ -160,10 +161,12 @@ function showMusicSetting()
 .side-bar .side-title{
   width: 100%;
   height: 50px;
-  line-height: 50px;
-  font-size: larger;
   display: block;
-  padding-left: 0.8em;
+  padding-left: 0.4rem;
+  font-size: 1.8rem;
+  font-weight: bold;
+
+  color: var(--color-text-show);
 }
 
 .search-input{

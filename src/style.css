@@ -52,6 +52,23 @@
   --color-text-title: var(--vt-c-text-light-title);
   --color-text-show: var(--vt-c-text-light-3);
   --color-text-money: var(--vt-c-text-red);
+
+  --color-btn-bg: var(--vt-c-indigo);
+  --color-btn-text: var(--vt-c-white);
+
+  --color-btn-bg-hover: var(--vt-c-indigo);
+  --color-btn-text-hover: var(--vt-c-white);
+
+  --color-btn-text-disabled: var(--vt-c-text-light-2);
+  --color-btn-text-disabled-hover: var(--vt-c-text-light-2);
+  --color-btn-bg-disabled: var(--vt-c-indigo);
+  --color-btn-bg-disabled-hover: var(--vt-c-indigo);
+
+  --color-btn-bg-active: var(--vt-c-indigo);
+  --color-btn-text-active: var(--vt-c-white);
+
+
+
   --color-shadow: var(--vt-c-divider-light-2);
   --color-shadow-hover: var(--vt-c-divider-light-1);
   --section-gap: 160px;
@@ -75,6 +92,12 @@
     --color-text-subtitle: var(--vt-c-text-dark-2);
     --color-text-show: var(--vt-c-text-dark-3);
     --color-text-money: var(--vt-c-text-red);
+
+    --color-btn-bg: var(--vt-c-indigo);
+    --color-btn-bg-hover: var(--vt-c-indigo);
+    --color-btn-text: var(--vt-c-white);
+    --color-btn-text-hover: var(--vt-c-white);
+
   }
 }
 

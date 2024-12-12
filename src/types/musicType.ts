@@ -42,4 +42,12 @@ export interface MusicSearchInfo {
     // 自动转换文件
 }
 
+export interface MusicScanSetting {
+    name: string;// 配置名称
+    path: string;// 扫描路径
+    scanSubDir: boolean;// 是否扫描子目录
+    // 是否文件去重
+    isFileRepeat: boolean;
+}
+
 
