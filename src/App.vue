@@ -144,7 +144,7 @@ function openApplicationCenter() {
   // 设置全局监听事件, 不是当前dom则关闭
 }
 function closeApplicationCenter() {
-  message.log('关闭应用中心');
+  // message.log('关闭应用中心');
   isOpenApplicationCenter.value = false;
 }
 
@@ -168,6 +168,7 @@ function openApplication(key: string)
   console.log(runNavComputed);
   console.log(runningApplications);
   openApp(key);
+  closeApplicationCenter();
 
 }
 </script>
@@ -304,6 +305,7 @@ function openApplication(key: string)
   position: absolute;
   bottom: 80px;
   left: 5%;
+  z-index: 99999;
 }
 .start-window::before{
   content: '';
