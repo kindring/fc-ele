@@ -1,10 +1,21 @@
 <script setup lang="ts">
-import {defineComponent} from "vue";
+import {defineComponent, ref} from "vue";
 import {MusicScanSetting} from "@/types/musicType.ts";
 import EmptyView from "@/components/public/emptyView.vue";
+import {KuiDialogCmd} from "@/components/public/kui-dialog-cmd.ts";
+
+import addScanDialog from "@/components/music/dialog/addScan.vue"
+import message from "@/components/public/kui/message";
 
 defineComponent({
   name: 'm-setting-scan'
+})
+
+const props  = defineProps({
+  windowId: {
+    type: String,
+    default: ''
+  }
 })
 
 const scanSetting: MusicScanSetting[] = [];
@@ -39,13 +50,36 @@ scanSetting.push({
   scanSubDir: true,
 })
 
+function testFn(){
+  message.info('test')
+}
+
+
+
+const kuiDialog = new KuiDialogCmd({
+  showContent: addScanDialog,
+  mountTarget: props.windowId,
+  className: 'dialog',
+  on: {
+    onSubmit: testFn
+  }
+});
+function openDialog()
+{
+  if(!kuiDialog.isShow())
+  {
+    kuiDialog.show();
+  } else {
+    kuiDialog.hide();
+  }
+}
 
 </script>
 
 <template>
   <div class="full scroll">
     <div class="btn-group">
-      <div class="btn">创建扫描配置</div>
+      <div class="btn" @click="openDialog">创建扫描配置</div>
     </div>
     <div class="scan-view scroll">
       <empty-view v-if="scanSetting.length === 0"/>
@@ -60,6 +94,8 @@ scanSetting.push({
         </div>
       </div>
     </div>
+
+
   </div>
 </template>
 

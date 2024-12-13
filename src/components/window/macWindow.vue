@@ -31,6 +31,10 @@ defineProps({
   disableMargin: {
     type: Boolean,
     default: false
+  },
+  appWindowId: {
+    type: String,
+    default: ''
   }
 })
 
@@ -100,7 +104,7 @@ const closeHandle = () => {
           </div>
         </div>
       </div>
-      <div class="window-content" >
+      <div class="window-content" :id="appWindowId" portal>
         <slot></slot>
       </div>
     </div>

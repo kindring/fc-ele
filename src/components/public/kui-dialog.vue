@@ -7,6 +7,11 @@ defineProps({
   className: {
     type: String,
     default: ''
+  },
+  // 挂载目标
+  mountTarget: {
+    type: String,
+    default: '#kui-root'
   }
 })
 defineEmits(['close'])
@@ -43,8 +48,8 @@ defineEmits(['close'])
 </script>
 
 <template>
-  <Teleport to="#kui-root" v-if="show">
-    <div :class="className">
+  <Teleport :defer="true" :to="mountTarget" >
+    <div v-if="show" :class="className">
       <slot></slot>
     </div>
   </Teleport>

@@ -207,13 +207,16 @@ function openApplication(key: string)
                 :app-name="item.showTitle"
                 :hidden="!item.show"
                 :index="item.index"
+                :app-window-id="item.id"
                 @min="minAppHandle(item)"
                 @close="closeAppHandle(item)"
                 @focus-window="focusAppHandle(item)"
             >
 <!--              切换对应组件, 并且-->
               <component
-                  :is="getAppComponent(item.key)">
+                  :is="getAppComponent(item.key)"
+                  :windowId="item.id"
+              >
               </component>
             </app-window>
           </div>

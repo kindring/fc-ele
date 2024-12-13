@@ -28,7 +28,10 @@ const props = defineProps({
     type: String,
     default: 'test'
   },
-
+  appWindowId: {
+    type: String,
+    default: ''
+  },
 })
 
 const isFull = ref(false)
@@ -271,13 +274,14 @@ watch(()=>props.parentWidth, (_newValue, _oldValue)=>{
         @move="(moveInfo: MoveInfo)=>{resizeHandle(item, moveInfo)}" >
     </vue-drag>
   </div>
-  <div class="app-window-show">
+  <div class="app-window-show" >
     <mac-window
         :title="'test212'"
         icon="home"
         :is-full="isFull"
         :disable-margin="true"
         :ding-show="false"
+        :app-window-id="appWindowId"
         @min="minHandle"
         @max="maxHandle"
         @close="closeHandle"

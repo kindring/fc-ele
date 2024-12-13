@@ -10,6 +10,13 @@ defineComponent({
   name: "musicIndex"
 })
 
+defineProps({
+  windowId: {
+    type: String,
+    default: ''
+  }
+})
+
 const searchText = ref('');
 
 const playList: Ref<PlayList[]> = ref<PlayList[]>([
@@ -80,7 +87,7 @@ function showMusicSetting()
 </script>
 
 <template>
-  <div class="fc-app-window">
+  <div class="fc-app-window" >
     <div class="music-content">
       <div class="side-bar">
         <div class="side-title">
@@ -118,7 +125,8 @@ function showMusicSetting()
       </div>
       <div class="play-list-info">
         <play-list-info v-if="musicViewShow === showPlayList" :play-list="playList[selectIndex]"/>
-        <music-setting v-if="musicViewShow === showSetting"/>
+        <music-setting v-if="musicViewShow === showSetting"
+                       :window-id="windowId"/>
       </div>
 
     </div>

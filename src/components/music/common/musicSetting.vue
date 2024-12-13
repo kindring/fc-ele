@@ -7,6 +7,13 @@ defineComponent({
   name: 'musicSetting',
 })
 
+defineProps({
+  windowId: {
+    type: String,
+    default: ''
+  }
+})
+
 interface TabItem {
   name: string;
   key: string;
@@ -29,11 +36,14 @@ function changeTabHandle (item: TabItem)
   showTabKey.value = item.key
 }
 
+
+
+
 </script>
 
 <template>
   <div class="musicSetting">
-    <div class="title">音乐设置</div>
+    <div class="title">音乐设置{{windowId}}</div>
     <div class="head">
       <div v-for="(item, index) in tabList"
            :key="index"
@@ -44,9 +54,11 @@ function changeTabHandle (item: TabItem)
       </div>
     </div>
     <div class="view-con">
-      <m-setting-scan v-if="showTabKey === keyScan"/>
+      <m-setting-scan v-if="showTabKey === keyScan" :window-id="windowId"/>
       <m-setting-could v-else-if="showTabKey === keyCloud"/>
     </div>
+
+
   </div>
 </template>
 
