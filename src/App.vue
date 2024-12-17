@@ -169,7 +169,6 @@ function openApplication(key: string)
   console.log(runningApplications);
   openApp(key);
   closeApplicationCenter();
-
 }
 </script>
 

@@ -6,6 +6,6 @@ export enum Magnet_Actions {
 
 
 export enum Music_Actions {
-  get_play_list= 'get_play_list',
-
+  play_list_fetch= 'play_list_fetch',
+  scan_music_select = 'scan_music_select',
 }

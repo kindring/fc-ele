@@ -273,14 +273,21 @@ export class ApiController {
         this.signId = signId
     }
 
+    _findTaskByAction(action)
+    {
+        return this.sendTasks.find(task => {
+            return task.action === action
+        })
+    }
 
     /**
      * 调用ipc 获取数据
      * @param action
      * @param params
      * @param timeout
+     * @param once 是否合并多个请求
      */
-    sendQuery(action: string, params: any, timeout: number = 10 * 1000): [callId: string, Promise<ResponseData<any>>] {
+    sendQuery(action: string, params: any, timeout: number = 10 * 1000, once: boolean = false): [callId: string, Promise<ResponseData<any>>] {
         let callId = this.buildCallId()
         let requestData: RequestData = {
             type: ApiType.req,
@@ -291,6 +298,27 @@ export class ApiController {
             timeout: timeout,
         }
         console.log(requestData)
+        if (once)
+        {
+            // 寻找队列中是否存在相同的请求. 如果有则直接返回, 不再发送请求
+            let _task = this._findTaskByAction(action);
+            if (_task)
+            {
+                // 返回一个直接触发的promise, 并将此次请求无效化
+                let promise: Promise<ResponseData<null>> = new Promise((resolve, reject): Promise<ResponseData<null>> => {
+                    resolve({
+                        type: ApiType.res,
+                        action: action,
+                        callId: callId,
+                        code: ErrorCode.cancel,
+                        msg: '请求被取消',
+                        data: null,
+                    })
+                })
+                console.log(`[I] sendQuery: ${action} has same task, return a promise`);
+                return [callId, promise];
+            }
+        }
         if(this.isInit){
             if (this.sendCallback){
                 this.sendCallback(this.sendKey, requestData)
