@@ -1,76 +1,75 @@
-<script >
+<script setup lang="ts">
 import IconSvg from "@/components/public/icon/iconSvg.vue";
+import {useTemplateRef, computed, defineComponent, onMounted, ref, nextTick} from "vue";
+import net from "net";
 
-export default {
-  name: "kui-input",
-  components: {IconSvg},
-  props: {
-    formId: {
-      type: String,
-      default: ''
-    },
-    value: {
-      type: String,
-      default: ''
-    },
-    placeholder: {
-      type: String,
-      default: ''
-    },
-    iconPosition: {
-      type: String,
-      default: 'left'
-    },
-    label: {
-      type: String,
-      default: ''
-    },
-    type: {
-      type: String,
-      default: 'text'
-    },
+defineComponent({
+  name: "kui-input"
+})
 
+const props = defineProps({
+  formId: {
+    type: String,
+    default: ''
   },
-  data() {
-    return {
-      inputValue: this.value,
-      showPassword: false,
-      labelWidth: 10
+  placeholder: {
+    type: String,
+    default: ''
+  },
+  iconPosition: {
+    type: String,
+    default: 'left'
+  },
+  label: {
+    type: String,
+    default: ''
+  },
+  type: {
+    type: String,
+    default: 'text'
+  },
+})
+
+const showPasswd = ref(false);
+const labelWidth = ref(10);
+const labelRef = useTemplateRef<HTMLInputElement>("label")
+const value = defineModel('value', String)
+
+const id = computed(
+    () => {
+      return props.formId + '_' + props.label
     }
-  },
-  computed: {
-    id(){
-      // 随机字符加上指定的id
-      return this.formId + '_' + this.label
-    }
-  },
-  watch: {
-    value(newVal) {
-      this.inputValue = newVal
-    }
-  },
-  mounted() {
-    this.labelWidth = this.comIndent()
-  },
-  methods: {
-    clickHandle(){
-      this.$emit('firstClick', this.inputValue);
-    },
-    changeHandle(e){
-      let nextVal = e.target.value
-      this.inputValue = nextVal
-      this.$emit('input', this.inputValue)
-    },
-    passwordChangeHandle(){
-      this.showPassword = !this.showPassword
-    },
-    comIndent() {
-      // 获取label的长度, 计算input的缩进长度
-      let labelWidth = this.$refs.label.offsetWidth
-      return labelWidth
-    }
+)
+
+const emit = defineEmits<{
+  (e: 'firstClick', val: string): void
+}>()
+
+function getLabelWidth(){
+  let el  = labelRef.value
+  console.log('labelWidth:  ', el)
+  if (el) {
+    labelWidth.value = el.offsetWidth ;
+    console.log('labelWidth:  ', labelWidth.value)
   }
 }
+
+onMounted(()=>{
+  nextTick(()=>{
+    getLabelWidth()
+  })
+})
+
+function clickHandle(){
+  emit('firstClick', value.value);
+}
+
+function passwordChangeHandle(){
+  showPasswd.value = !showPasswd.value
+}
+
+
+
 </script>
 
 <template>
@@ -78,8 +77,8 @@ export default {
 
       <input class="basic-slide"
              :id="id"
-             :type="showPassword ? 'text' : type"
-             :value="inputValue"
+             :type="showPasswd ? 'text' : type"
+             :value="value"
              @change="changeHandle"
              :placeholder="placeholder"
              @click="clickHandle"
@@ -91,7 +90,7 @@ export default {
       {{ label }}
     </label>
       <div class="icon-box" v-if="type==='password'" @click="passwordChangeHandle">
-        <icon-svg :icon-class="showPassword ? 'eye-open' : 'eye-close'"></icon-svg>
+        <icon-svg :icon-class="showPasswd ? 'eye-open' : 'eye-close'"></icon-svg>
       </div>
   </div>
 </template>
@@ -119,7 +118,7 @@ export default {
   --text-indent-value: 0;
   display: inline-block;
   width: 100%;
-  padding: 10px 0 10px 15px;
+  padding: 10px 0 10px calc(var(--text-indent-value) + 10px);
   font-family: "Open Sans", sans;
   font-weight: 400;
   color: #377D6A;
@@ -127,13 +126,12 @@ export default {
   border: 0;
   border-radius: 3px;
   outline: 0;
-  text-indent: var(--text-indent-value);
   transition: all 0.3s ease-in-out;
 }
 .basic-slide::-webkit-input-placeholder {
-  color: #efefef;
+  color: #858585;
   text-indent: 0;
-  font-weight: 300;
+  font-weight: 400;
 }
 .input-box > label {
   display: inline-flex;
@@ -152,6 +150,7 @@ export default {
 .basic-slide:focus, .basic-slide:active {
   color: #377D6A;
   text-indent: 0;
+  padding-left: 15px;
   background: #fff;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
