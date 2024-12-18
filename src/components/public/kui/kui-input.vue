@@ -28,6 +28,10 @@ const props = defineProps({
     type: String,
     default: 'text'
   },
+  disabled: {
+    type: Boolean,
+    default: false
+  }
 })
 
 const showPasswd = ref(false);
@@ -64,6 +68,11 @@ function clickHandle(){
   emit('firstClick', value.value);
 }
 
+function changeHandle(e: Event){
+  let nextVal = e.target.value
+  value.value = nextVal
+}
+
 function passwordChangeHandle(){
   showPasswd.value = !showPasswd.value
 }
@@ -79,6 +88,7 @@ function passwordChangeHandle(){
              :id="id"
              :type="showPasswd ? 'text' : type"
              :value="value"
+             :disabled="disabled"
              @change="changeHandle"
              :placeholder="placeholder"
              @click="clickHandle"
