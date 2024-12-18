@@ -84,6 +84,13 @@ export class ApiController {
     setLogFn(logFn: (...args: any[]) => void){
         this.logFn = logFn
     }
+
+    private _rmTask(callId: string){
+        let idx = this.sendTasks.findIndex(requestData => requestData.callId === callId)
+        if(idx > -1){
+            this.sendTasks.splice(idx, 1)
+        }
+    }
     /**
      * 构建新的callId
      */
@@ -140,7 +147,7 @@ export class ApiController {
         // 执行回调
         call.resolve(responseData)
         // 从队列中删除
-        delete this.calls[call.callId]
+        this._rmTask(call.callId)
         this.findNextTimeoutCall()
     }
     private notifyHandle(notify: NotifyItem, data: NotifyData) {
@@ -297,7 +304,7 @@ export class ApiController {
             callId: callId,
             timeout: timeout,
         }
-        console.log(requestData)
+        // console.log(requestData)
         if (once)
         {
             // 寻找队列中是否存在相同的请求. 如果有则直接返回, 不再发送请求
