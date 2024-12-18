@@ -33,7 +33,7 @@ async function selectPathHandle() {
 </script>
 
 <template>
-  <div class="dialog-content">
+  <div class="dialog-content form-dialog">
     <div class="dialog-title">
       添加扫描路径
       <div
@@ -51,6 +51,11 @@ async function selectPathHandle() {
                    :value="dirPath"
         />
       </div>
+
+    </div>
+    <div class="dialog-footer">
+      <div class="btn cancel-btn mr-2" @click="closeDialog()">取消</div>
+      <div class="btn primary-btn" @click="emits('submit')">确定</div>
     </div>
 
   </div>

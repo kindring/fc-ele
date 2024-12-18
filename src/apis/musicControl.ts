@@ -14,7 +14,7 @@ export async function fetchPlayList(): Promise< ResponseData<Magnet[]> >
 
 export async function selectScanDir(defaultPath: string): Promise< ResponseData<string> >
 {
-    let [_callId, promise] = api.sendQuery(Music_Actions.scan_music_select, defaultPath, -1);
+    let [_callId, promise] = api.sendQuery(Music_Actions.scan_music_select, defaultPath, -1, true);
     return await promise;
 }
 
