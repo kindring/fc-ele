@@ -86,6 +86,7 @@ export class ApiController {
     }
 
     private _rmTask(callId: string){
+        delete this.calls[callId]
         let idx = this.sendTasks.findIndex(requestData => requestData.callId === callId)
         if(idx > -1){
             this.sendTasks.splice(idx, 1)
