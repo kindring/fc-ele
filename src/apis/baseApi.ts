@@ -167,16 +167,16 @@ export class ApiController {
         let nowTimeStamp = Date.now()
         // 获取对应call的超时时间
         let callItem = this.calls[callId]
-        if (!callItem)
+        if (!callItem || callItem.endTime === -1)
         {
-            return this.logFn(`[E] startTimeoutCheck: ${callId} not found`)
+            return this.logFn(`[E] startTimeoutCheck: ${callId} not found or no check timeout`)
         }
 
         let timeWait = callItem.endTime - nowTimeStamp - this.checkInterval
         console.log(`[I] startTimeoutCheck: ${callId} timeWait: ${timeWait}`)
         // 在已经有一个超时检查的情况下, 判断新的超时时间是否小于当前正在执行的超时时间. 用于将计时器更新为最新的
-        if(this.lastCheckId && callId !== this.lastCheckId){
-            if(callItem.endTime < this.lastCheckTime){
+        if (this.lastCheckId && callId !== this.lastCheckId){
+            if (callItem.endTime < this.lastCheckTime){
                 this.lastCheckTime = callItem.endTime
                 this.lastCheckId = callId
                 // 取消计时器
@@ -268,7 +268,17 @@ export class ApiController {
         if(!callItem){
             return this.logFn(`[E] refreshTimeout: ${callId} not found`)
         }
+        if ( callItem.endTime === -1)
+        {
+            return this.logFn(`[E] refreshTimeout: ${callId} endTime is -1`)
+        }
         callItem.endTime = Date.now() + timeout
+        if(callItem.endTime === -1)
+        {
+            // 防止进入到 -1 的情况, 导致无法正常超时
+            callItem.endTime = -2
+        }
+
         this.startTimeoutCheck(callId)
     }
 
@@ -327,6 +337,8 @@ export class ApiController {
                 return [callId, promise];
             }
         }
+
+
         if(this.isInit){
             if (this.sendCallback){
                 this.sendCallback(this.sendKey, requestData)
@@ -341,7 +353,9 @@ export class ApiController {
         let timeStamp = Date.now()
         // 加上通信超时时间
         let endTime = timeStamp + timeout + 200
-
+        if(timeout === -1) {
+            endTime = -1
+        }
         let promise: Promise<ResponseData<any>> = new Promise((resolve, reject) => {
             this.calls[callId] = {
                 action: action,
@@ -350,12 +364,10 @@ export class ApiController {
                 reject: reject,
                 endTime: endTime,
                 isInit: !this.isInit,
-            }
+            } as CallItem
         })
         // 如果是-1, 则表示不设置超时时间, 永久等待检测
-        if(timeout === -1){
-            endTime = -1
-        }else{
+        if(timeout !== -1){
             if(this.isInit){
                 console.log(`[I] start timeout check: ${callId} now: ${timeStamp} endTime: ${endTime} wait: ${timeout}`)
                 this.startTimeoutCheck(callId)
