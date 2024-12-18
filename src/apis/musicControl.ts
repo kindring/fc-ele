@@ -2,6 +2,7 @@ import api from "./baseApi.ts"
 import {ResponseData} from "@/types/apiTypes.ts";
 import {Magnet} from "@/types/magnetType.ts";
 import {Music_Actions} from "@/apis/ApiAction.ts";
+import {MusicScanSetting} from "@/types/musicType.ts";
 
 export async function fetchPlayList(): Promise< ResponseData<Magnet[]> >
 {
@@ -18,4 +19,9 @@ export async function selectScanDir(defaultPath: string): Promise< ResponseData<
     return await promise;
 }
 
+export async function addScanDir(scanSetting: MusicScanSetting)
+{
+    let [_callId, promise] = api.sendQuery(Music_Actions.scan_music_add, scanSetting);
+    return await promise;
+}
 
