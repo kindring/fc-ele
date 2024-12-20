@@ -2,7 +2,7 @@
 import {defineComponent, ref} from "vue";
 import KuiInput from "@/components/public/kui/kui-input.vue";
 import message from "@/components/public/kui/message";
-import {selectScanDir} from "@/apis/musicControl.ts";
+import {addScanDir, selectScanDir} from "@/apis/musicControl.ts";
 import KuiCheckbox from "@/components/public/kui/kui-checkbox.vue";
 import {MusicScanSetting} from "@/types/musicType.ts";
 
@@ -39,7 +39,7 @@ async function selectPathHandle() {
 async function submitHandle() {
   let param: MusicScanSetting = {
     name: name.value,
-    dirPath: dirPath.value,
+    path: dirPath.value,
     scanSubDir: scanSubDir.value,
     isFileRepeat: isFileRepeat.value
   }
@@ -50,7 +50,7 @@ async function submitHandle() {
   }
   if (!param.name)
   {
-    param.name = param.dirPath;
+    param.name = param.path;
   }
   let responseData = await addScanDir(param);
   if (responseData.code === 0) {

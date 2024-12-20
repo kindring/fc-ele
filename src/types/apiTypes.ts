@@ -25,14 +25,14 @@ export enum ApiType {
 
 
 // 请求参数
-export interface RequestData
+export interface RequestData<T>
 {
     type: ApiType.req;
     signId: string;
     callId: string;
     // 请求的具体操作
     action: string;
-    data: any;
+    data: T;
     // 超时时间, 单位毫秒
     timeout: number;
 }

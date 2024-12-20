@@ -11,7 +11,7 @@ export interface PlayList {
     lastPlayTime: number;  // 上次播放时间 时间戳
     isSync: boolean; // 是否参与跨设备同步
     isPublic: boolean; // 是否公开
-    isLike: boolean; // 是否为默认收藏歌单
+    isLike: boolean; // 是否为默认收藏歌单, 默认歌单不允许编辑信息
 }
 
 export enum MusicType{
@@ -35,6 +35,13 @@ export interface MusicInfo {
     tags: string[]; // 歌曲标签
     playCount: number;  // 播放次数
 }
+// 歌单音频信息
+export interface PlayListMusicInfo {
+    id: string;
+    musicId: string;
+    playListId: string;
+    order: number;
+}
 
 
 export interface MusicSearchInfo {
@@ -50,4 +57,12 @@ export interface MusicScanSetting {
     isFileRepeat: boolean;
 }
 
+
+export enum MusicTableName
+{
+    music_play_list = 'music_play_list',// 歌单表
+    music_scan_setting = 'music_scan_setting',// 扫描配置
+    music_songs = 'music_songs',// 歌曲表
+    music_play_list_songs = 'music_play_list_songs',// 歌单歌曲表
+}
 

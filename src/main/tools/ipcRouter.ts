@@ -1,5 +1,5 @@
 import {apiRouter} from "@/main/control/api_router.ts";
-import {NotifyData, RequestData, ResponseData} from "@/types/apiTypes.ts";
+import {ApiType, ErrorCode, NotifyData, RequestData, ResponseData} from "@/types/apiTypes.ts";
 import AppControl from "@/main/AppControl.ts";
 import Logger from "@/util/logger.ts";
 import {actionMap} from "@/tools/IpcCmd.ts";
@@ -44,7 +44,7 @@ const sendToMain = sendDataByType.bind(null, 'main')
  * 处理窗口发来的api请求
  * @param requestData
  */
-export async function ipcRouter(requestData: RequestData): Promise<boolean>
+export async function ipcRouter(requestData: RequestData<any>): Promise<boolean>
 {
     let signId = requestData.signId;
     let responseData: ResponseData<any> = await apiRouter(requestData)
@@ -55,5 +55,23 @@ export async function ipcRouter(requestData: RequestData): Promise<boolean>
         console.log(`[返回数据] 前端未配置窗口id, 尝试返回给main窗口`)
         return sendToMain(responseData)
     }
+}
+
+export function t_gen_res(requestData: RequestData<any>, code: number, msg: string, data: any): ResponseData<any>
+{
+    let responseData: ResponseData<any> = {
+        type: ApiType.res,
+        code: code,
+        callId: requestData.callId,
+        action: requestData.action,
+        msg: msg,
+        data: data
+    }
+    return responseData;
+}
+
+export function t_res_ok(requestData: RequestData<any>, data: any): ResponseData<any>
+{
+    return t_gen_res(requestData, ErrorCode.success, '', data);
 }
 

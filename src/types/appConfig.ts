@@ -67,3 +67,11 @@ export interface registerWindowData {
     type: string;
 }
 
+
+export enum AppDbName
+{
+    magnet_db = 'magnet.db',
+    music_db = 'music.db',
+}
+
+

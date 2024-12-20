@@ -6,7 +6,7 @@ import Logger from "@/util/logger.ts";
 
 let logger = Logger.logger('magnet_control', 'info');
 
-export async function c_fetchMagnetList(requestData: RequestData){
+export async function c_fetchMagnetList(requestData: RequestData<null>){
     let [err, result] = await handle(getMagnetList());
     let responseData: ResponseData<any>
     if (err) {
@@ -34,10 +34,10 @@ export async function c_fetchMagnetList(requestData: RequestData){
 }
 
 
-export async function c_magnet_batch_update(requestData: RequestData){
+export async function c_magnet_batch_update(requestData: RequestData<ChangeSaveMagnet[]>){
     let responseData: ResponseData<any>
     // 区分出新增的项和原本就有的项
-    let saveMagnets: ChangeSaveMagnet[] = requestData.data as ChangeSaveMagnet[];
+    let saveMagnets: ChangeSaveMagnet[] = requestData.data ;
     // 分类
     let addMagnets: SavedMagnet[] = []
     let updateMagnets: SavedMagnet[] = []
@@ -84,9 +84,9 @@ export async function c_magnet_batch_update(requestData: RequestData){
 }
 
 
-export async function c_magnet_delete(requestData: RequestData){
+export async function c_magnet_delete(requestData: RequestData<{magnetId: string}>){
     let responseData: ResponseData<any>
-    let data = requestData.data as {magnetId: string};
+    let data = requestData.data;
     if (!data.magnetId) {
         responseData = {
             type: ApiType.res,
