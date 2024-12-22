@@ -6,8 +6,8 @@ import Logger from "@/util/logger.ts";
 
 let logger = Logger.logger('magnet_control', 'info');
 
-export async function c_fetchMagnetList(requestData: RequestData<null>){
-    let [err, result] = await handle(getMagnetList());
+export async function c_fetchMagnetList(requestData: RequestData<null>) {
+    let [err, result] = await getMagnetList();
     let responseData: ResponseData<any>
     if (err) {
         err = err as Error;
@@ -21,7 +21,6 @@ export async function c_fetchMagnetList(requestData: RequestData<null>){
         }
         return responseData;
     }
-    console.log(result)
     responseData = {
         type: ApiType.res,
         code: ErrorCode.success,
@@ -98,7 +97,7 @@ export async function c_magnet_delete(requestData: RequestData<{magnetId: string
         }
         return responseData;
     }
-    let [err, _result] = await handle(db_deleteMagnet(data.magnetId));
+    let [err, _result] = await db_deleteMagnet(data.magnetId);
     if (err) {
         err = err as Error;
         logger.error(`[删除数据失败] ${err.message}`)

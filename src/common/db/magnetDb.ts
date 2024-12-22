@@ -42,18 +42,30 @@ initMagnetData()
 
 
 
-export function findMagnetById(id: string) {
+export async function findMagnetById(id: string) : PromiseResult<SavedMagnet> {
     let db = loadDb(AppDbName.magnet_db)
-    return db?.select(
+    if (!db) {
+        return [new Error('数据库初始化失败'), null];
+    }
+    logger.info(`查询磁贴: ${id}`)
+    let [err, res] = await handle(db.select(
         'id',
         'x',
         'y',
         'type',
         'size'
-    ).from('magnets').where('id', id)
+    ).from('magnets').where('id', id))
+    if (err)
+    {
+        err = err as Error;
+    }
+    if (!res || res.length === 0) {
+        return [null, null];
+    }
+    return [null, res[0]]
 }
 
-export async function getMagnetList(): Promise<[Error | null, SavedMagnet[]]> {
+export async function getMagnetList(): PromiseResult<SavedMagnet[]> {
     let db = loadDb(AppDbName.magnet_db)
     if (!db) {
         return [new Error('数据库初始化失败'), []];

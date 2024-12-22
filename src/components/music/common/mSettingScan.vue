@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import {defineComponent, ref} from "vue";
+import {defineComponent, onBeforeMount, Ref, ref} from "vue";
 import {MusicScanSetting} from "@/types/musicType.ts";
 import EmptyView from "@/components/public/emptyView.vue";
 import {KuiDialogCmd} from "@/components/public/kui-dialog-cmd.ts";
 
 import addScanDialog from "@/components/music/dialog/addScan.vue"
 import message from "@/components/public/kui/message";
+import {fetchScanConfig} from "@/apis/musicControl.ts";
+import {ErrorCode} from "@/types/apiTypes.ts";
 
 defineComponent({
   name: 'm-setting-scan'
@@ -18,37 +20,7 @@ const props  = defineProps({
   }
 })
 
-const scanSetting: MusicScanSetting[] = [];
-scanSetting.push({
-  name: '默认配置',
-  isFileRepeat: true,
-  path: 'D:\\music',
-  scanSubDir: true,
-})
-scanSetting.push({
-  name: '默认配置',
-  isFileRepeat: true,
-  path: 'D:\\music',
-  scanSubDir: true,
-})
-scanSetting.push({
-  name: '默认配置',
-  isFileRepeat: true,
-  path: 'D:\\music',
-  scanSubDir: true,
-})
-scanSetting.push({
-  name: '默认配置',
-  isFileRepeat: true,
-  path: 'D:\\music',
-  scanSubDir: true,
-})
-scanSetting.push({
-  name: '默认配置',
-  isFileRepeat: true,
-  path: 'D:\\music',
-  scanSubDir: true,
-})
+const scanSetting: Ref<MusicScanSetting[]> = ref([]);
 
 function testFn(){
   message.info('test')
@@ -73,6 +45,20 @@ function openDialog()
     kuiDialog.hide();
   }
 }
+
+async function fetchScanSetting()
+{
+  let responseData = await fetchScanConfig();
+  if (responseData.code === ErrorCode.success)
+  {
+    scanSetting.value = responseData.data;
+  }
+  console.log(responseData);
+}
+
+onBeforeMount(()=>{
+  fetchScanSetting();
+})
 
 </script>
 

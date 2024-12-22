@@ -18,7 +18,7 @@ function createDbFile (dbFileName: string): string {
         let resourceDbIsExist = fs.existsSync(resourceDbPath);
         if (!resourceDbIsExist) {
             console.log("base db not find");
-            fs.ensureFile(resourceDbPath);
+            fs.ensureFileSync(resourceDbPath);
             // 创建初始文件
             let dbInstance = knex({
                 client: "better-sqlite3",

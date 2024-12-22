@@ -3,7 +3,7 @@ import { loadDb} from "@/common/db/db.ts";
 import {handle, PromiseResult} from "@/util/promiseHandle.ts";
 import {AppDbName} from "@/types/appConfig.ts";
 import {Knex} from "knex";
-import {MusicScanSetting, MusicTableName} from "@/types/musicType.ts";
+import {MusicScanSetting, MusicTableName, PlayList} from "@/types/musicType.ts";
 
 let logger = Logger.logger('music_db', 'info');
 
@@ -16,12 +16,14 @@ async function _initScanConfigTable(db : Knex): PromiseResult<boolean> {
         logger.error(`[音频扫描库] ${err.message}`)
         return [new Error('音频扫描库初始化失败'), false]
     }
+    console.log(hasTable)
     if (hasTable) {
         return [null, true];
     }
-    let [createErr, _res] = await handle(db?.schema.createTable('scanConfig', (table) => {
+    let [createErr, _res] = await handle(db?.schema.createTable(MusicTableName.music_scan_setting, (table) => {
         // 初始化扫描配置
-        logger.error(`[初始化音频扫描库]`)
+        logger.info(`[初始化音频扫描库]`)
+        table.increments('id').primary()
         table.string('name')
         table.string('path')
         table.boolean('scanSubDir')
@@ -38,7 +40,7 @@ async function _initScanConfigTable(db : Knex): PromiseResult<boolean> {
 
 async function _initPlayListTable(db : Knex): PromiseResult<boolean> {
     let [err, hasTable] = await handle(
-        db.schema.hasTable(MusicTableName.music_scan_setting)
+        db.schema.hasTable(MusicTableName.music_play_list)
     )
     if (err) {
         err = err as Error;
@@ -50,7 +52,7 @@ async function _initPlayListTable(db : Knex): PromiseResult<boolean> {
     }
     let [createErr, _res] = await handle(
         db.schema.createTable(MusicTableName.music_play_list, (table) => {
-            logger.error(`[初始化音频播放列表库]`)
+            logger.info(`[初始化音频播放列表库]`)
             table.increments('id').primary()
             table.string('name')
             table.string('icon')
@@ -105,7 +107,7 @@ async function _initSongsTable(db : Knex): PromiseResult<boolean>
     }
     let [createErr, _res] = await handle(
         db.schema.createTable(MusicTableName.music_songs, (table) => {
-            logger.error(`[初始化音频库]`)
+            logger.info(`[初始化音频库]`)
             table.increments('id').primary()
             table.string('name')
             table.string('artists')
@@ -145,7 +147,7 @@ async function _initPlaylistSongs(db : Knex): PromiseResult<boolean>
     }
     let [createErr, _res] = await handle(
         db.schema.createTable(MusicTableName.music_play_list_songs, (table) => {
-            logger.error(`[初始化歌单歌曲库]`)
+            logger.info(`[初始化歌单歌曲库]`)
             table.increments('id').primary()
             table.integer('musicId')
             table.integer('playListId')
@@ -247,8 +249,15 @@ export async function addScanConfig(scanConfig: MusicScanSetting) : PromiseResul
         logger.error('数据库初始化失败')
         return [new Error('音乐数据库初始化失败'), false]
     }
+    // 移除其中的 id
+    let addScanConfig = {
+        name: scanConfig.name,
+        path: scanConfig.path,
+        scanSubDir: scanConfig.scanSubDir,
+        isFileRepeat: scanConfig.isFileRepeat
+    }
     let [err, _res] = await handle(
-        db.insert(scanConfig).into(MusicTableName.music_scan_setting)
+        db.insert(addScanConfig).into(MusicTableName.music_scan_setting)
     )
     if (err) {
         err = err as Error;
@@ -274,7 +283,7 @@ export async function updateScanConfig(scanConfig: MusicScanSetting) : PromiseRe
     return [err, true];
 }
 
-export async function deleteScanConfig(path: string) : PromiseResult<boolean>
+export async function deleteScanConfig(id: number) : PromiseResult<boolean>
 {
     let db = loadDb(AppDbName.music_db)
     if(!db){
@@ -282,10 +291,49 @@ export async function deleteScanConfig(path: string) : PromiseResult<boolean>
         return [new Error('音乐数据库初始化失败'), false]
     }
     let [err, _res] = await handle(
-        db.delete().from(MusicTableName.music_scan_setting).where('path', path)
+        db.delete().from(MusicTableName.music_scan_setting).where('id', id)
     )
     if (err) {
         err= err as Error;
     }
     return [err, true];
+}
+
+
+export async function getPlayList() : PromiseResult<PlayList[]>
+{
+    let db = loadDb(AppDbName.music_db)
+    if(!db){
+        logger.error('数据库初始化失败')
+        return [new Error('音乐数据库初始化失败'), null]
+    }
+    let [err, res] = await handle(
+        db.select('id', 'name', 'icon', 'cover', 'description', 'playCount', 'trackCount', 'createTime', 'isTagSearch', 'lastPlayTime', 'isSync', 'isPublic', 'isLike')
+            .from(MusicTableName.music_play_list)
+    )
+    if (err) {
+        err = err as Error;
+        logger.error(`[获取播放列表失败] ${err.message}`)
+        return [err, null];
+    }
+    return [null, res as PlayList[]];
+}
+
+
+export async function addPlayList(playList: PlayList) : PromiseResult<boolean>
+{
+    let db = loadDb(AppDbName.music_db)
+    if(!db){
+        logger.error('数据库初始化失败')
+        return [new Error('音乐数据库初始化失败'), false]
+    }
+    let [err, _res] = await handle(
+        db.insert(playList).into(MusicTableName.music_play_list)
+    )
+    if (err) {
+        err = err as Error;
+        logger.error(`[添加播放列表失败] ${err.message}`)
+        return [err, false];
+    }
+    return [null, true];
 }

@@ -24,12 +24,15 @@ export async function apiRouter(requestData: RequestData<any>){
             responseData = await c_scanMusicSelect(requestData);
             break;
         case Music_Actions.scan_music_add:
-            responseData = await c_scanMusicSelect(requestData);
+            responseData = await c_scanMusicAdd(requestData);
             break;
         case Music_Actions.scan_settings:
             responseData = await c_scanSettings(requestData);
             break;
-        case Music_Actions.scan_music_add:
+        case Music_Actions.scan_music_update:
+            responseData = await c_scanSettings(requestData);
+            break;
+        case Music_Actions.scan_music_delete:
             responseData = await c_scanMusicAdd(requestData);
             break;
         default:

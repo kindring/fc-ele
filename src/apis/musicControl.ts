@@ -25,3 +25,8 @@ export async function addScanDir(scanSetting: MusicScanSetting)
     return await promise;
 }
 
+export async function fetchScanConfig() : Promise<ResponseData<MusicScanSetting[]>>
+{
+    let [_callId, promise] = api.sendQuery(Music_Actions.scan_settings, {});
+    return await promise;
+}

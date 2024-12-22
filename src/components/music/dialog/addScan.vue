@@ -24,6 +24,7 @@ function closeDialog() {
   emits('close');
 }
 
+
 async function selectPathHandle() {
   let responseData = await selectScanDir(dirPath.value);
   // console.log(responseData)
@@ -38,12 +39,13 @@ async function selectPathHandle() {
 
 async function submitHandle() {
   let param: MusicScanSetting = {
+    id: 0,
     name: name.value,
     path: dirPath.value,
     scanSubDir: scanSubDir.value,
     isFileRepeat: isFileRepeat.value
   }
-  if (!param.dirPath)
+  if (!param.path)
   {
     message.warning('请选择需要扫描的子目录');
     return;

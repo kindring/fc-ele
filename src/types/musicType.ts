@@ -50,6 +50,7 @@ export interface MusicSearchInfo {
 }
 
 export interface MusicScanSetting {
+    id: number;
     name: string;// 配置名称
     path: string;// 扫描路径
     scanSubDir: boolean;// 是否扫描子目录

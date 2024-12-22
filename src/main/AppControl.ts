@@ -11,6 +11,8 @@ import {initIpc} from "./tools/ipcInit.ts";
 import {initHook} from "./tools/hookInit.ts";
 import hook from "@/util/hook.ts";
 import Path from "path";
+import {initMusicData} from "@/common/db/db_music.ts";
+import {ResType} from "@/util/promiseHandle.ts";
 
 let logger = Logger.logger('controlWindow', 'info');
 
@@ -286,7 +288,7 @@ async function exit(){
 export async function initApp(appConfig: AppConfig, app: Electron.App) : Promise<AppWindow | null>{
     logger.info('start init control window');
     let mainWindow : BrowserWindow = _createMainWindow();
-    let err, port: number, server: FcServer | null;
+    let err, port: number, server: FcServer | null , flag : ResType<boolean> = false;
     _appConfig = appConfig;
     [err,port] = await getAvailablePort(WebPort,300);
     if (port === -1){
@@ -329,7 +331,14 @@ export async function initApp(appConfig: AppConfig, app: Electron.App) : Promise
         logger.info(`[应用初始化] 快捷键注册完成`);
     }
 
+   [err, flag] = await initMusicData();
 
+    if(err){
+        logger.error(`[应用初始化] 初始化音乐库失败: ${err}`);
+    }
+    if(flag){
+        logger.info(`[应用初始化] 初始化音乐库完成`);
+    }
 
     logger.info(`[应用初始化] 初始化完成`);
 
