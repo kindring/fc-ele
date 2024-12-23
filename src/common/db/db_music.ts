@@ -231,7 +231,7 @@ export async function getScanConfig() : PromiseResult<MusicScanSetting[]>
         return [new Error('音乐数据库初始化失败'), null]
     }
     let [err, res] = await handle(
-        db.select('name', 'path', 'scanSubDir', 'isFileRepeat')
+        db.select('id', 'name', 'path', 'scanSubDir', 'isFileRepeat')
             .from(MusicTableName.music_scan_setting)
     )
     if (err) {

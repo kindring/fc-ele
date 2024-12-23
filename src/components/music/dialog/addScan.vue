@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {defineComponent, ref} from "vue";
+import {defineComponent, onMounted, PropType, ref} from "vue";
 import KuiInput from "@/components/public/kui/kui-input.vue";
 import message from "@/components/public/kui/message";
 import {addScanDir, selectScanDir} from "@/apis/musicControl.ts";
@@ -10,15 +10,43 @@ defineComponent({
   name: "addScanDialog"
 })
 
+const props = defineProps({
+  scanSetting: {
+    type: Object as PropType<MusicScanSetting>,
+    default: () => {
+      return {
+        id: -1,
+        name: '',
+        path: '',
+        scanSubDir: false,
+        isFileRepeat: false
+      }
+    }
+  }
+  }
+)
+
 const emits = defineEmits<{
     (e: 'close' ): void,
     (e: 'submit'): void
 }>()
 
+const isEdit = ref(false);
 const name = ref('');
 const dirPath = ref('');
 const scanSubDir = ref(false);
 const isFileRepeat = ref(false);
+
+onMounted(()=>{
+  console.log(props.scanSetting);
+  if ( props.scanSetting && props.scanSetting.id > 0) {
+    isEdit.value = true;
+    name.value = props.scanSetting.name;
+    dirPath.value = props.scanSetting.path;
+    scanSubDir.value = props.scanSetting.scanSubDir;
+    isFileRepeat.value = props.scanSetting.isFileRepeat;
+  }
+})
 
 function closeDialog() {
   emits('close');
@@ -68,7 +96,7 @@ async function submitHandle() {
 <template>
   <div class="dialog-content form-dialog">
     <div class="dialog-title">
-      添加扫描路径
+      {{ isEdit? '编辑扫描路径' : '新增扫描路径' }}
       <div
           class="close-btn"
           @click="closeDialog()">

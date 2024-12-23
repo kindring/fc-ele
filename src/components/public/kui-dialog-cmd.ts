@@ -83,8 +83,8 @@ export class KuiDialogCmd {
             this.targetEl.removeChild(this.containerEl);
         }
         render(null, this.containerEl);
-        if (closeFn) closeFn();
         this.showFlag = false;
+        if (closeFn) closeFn();
     }
 
     getAllListeners() {

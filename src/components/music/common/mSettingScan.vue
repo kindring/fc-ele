@@ -8,6 +8,7 @@ import addScanDialog from "@/components/music/dialog/addScan.vue"
 import message from "@/components/public/kui/message";
 import {fetchScanConfig} from "@/apis/musicControl.ts";
 import {ErrorCode} from "@/types/apiTypes.ts";
+import IconSvg from "@/components/public/icon/iconSvg.vue";
 
 defineComponent({
   name: 'm-setting-scan'
@@ -33,9 +34,17 @@ const kuiDialog = new KuiDialogCmd({
   mountTarget: props.windowId,
   className: 'dialog',
   on: {
-    onSubmit: testFn
-  }
+    onSubmit: testFn,
+  },
+  onClose: closeScanDialogHandle
 });
+
+function closeScanDialogHandle()
+{
+  // fetchScanSetting();
+  return true;
+}
+
 function openDialog()
 {
   if(!kuiDialog.isShow())
@@ -60,6 +69,12 @@ onBeforeMount(()=>{
   fetchScanSetting();
 })
 
+
+function editScanHandle(item: MusicScanSetting)
+{
+  kuiDialog.show({scanSetting: item});
+}
+
 </script>
 
 <template>
@@ -75,8 +90,19 @@ onBeforeMount(()=>{
           {{ item.name }}
         </div>
         <div class="scan-content">
-          <div class="scan-item-content">{{ item.path }}</div>
+          <div class="line-row">{{ item.path }}</div>
+          <div class="line-row">
+            <span class="label">扫描子目录: </span>
+            <span class="value"> {{ item.scanSubDir ? '是' : '否' }}</span>
 
+          </div>
+          <div class="line-row">
+            <span class="label">是否允许重复文件:</span>
+            <span class="value"> {{ item.isFileRepeat ? '是' : '否' }}</span>
+          </div>
+        </div>
+        <div class="edit-btn" @click="editScanHandle(item)">
+          <icon-svg icon-name="edit"/>
         </div>
       </div>
     </div>
@@ -86,6 +112,7 @@ onBeforeMount(()=>{
 </template>
 
 <style scoped>
+@import "../../../assets/public.css";
 .btn-group{
   width: 100%;
   height: 50px;
@@ -116,12 +143,13 @@ onBeforeMount(()=>{
 
 .scan-item{
   width: calc(100% - 40px);
-  height: 120px;
+  height: 140px;
   border-radius: 1rem;
   margin: 20px auto 0;
   box-sizing: border-box;
   padding: 5px 10px;
   background-color: var(--color-background-mute);
+  position: relative;
 }
 .scan-item .scan-title{
   width: 100%;
@@ -129,6 +157,35 @@ onBeforeMount(()=>{
   font-size: 1.2rem;
   font-weight: bold;
 }
+.line-row {
+  height: 30px;
+}
+.line-row .label{
+  width: 9rem;
+}
+.line-row .value{
+  width: calc(100% - 9rem);
+}
+.edit-btn{
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  border-radius: 50%;
+  box-shadow: 0 0 5px 2px white;
+  font-size: 1.4rem;
+}
+.edit-btn:hover{
+  background-color: var(--color-btn-bg-hover);
+  color: var(--color-btn-text-hover);
+}
+
 
 
 </style>
