@@ -1,30 +1,34 @@
 import {Component, h, render} from "vue";
+import alertModel from "./alertModel.vue"
 
-enum KuiDialogType {
+export enum KuiDialogType {
     alert,
     confirm,
     prompt,
     loading,
     custom
 }
-interface KuiDialogCmdOptions {
+export interface KuiDialogCmdOptions {
     dialogType?: KuiDialogType;
     showContent: string | Component;
     mountTarget?: string;
     className?: string;
     onClose?: () => void;
     beforeClose?: () => boolean;
+    onOk?: () => void;
     on?: Record<string, (...args: any[]) => void>;
 }
 export class KuiDialogCmd {
     static defaultOptions: KuiDialogCmdOptions = {
         dialogType: KuiDialogType.custom,
         showContent: "kui-dialog",
-        mountTarget: "#kui-root",
+        mountTarget: "kui-root",
         beforeClose: (): boolean => {
             return true;
         },
         onClose() {
+        },
+        onOk() {
         },
         className: "kui-dialog",
     }
@@ -46,9 +50,23 @@ export class KuiDialogCmd {
     }
 
     show( props?: any ) {
-        const eventListeners = {
-            onClose: () => this.hide(), // 绑定关闭事件
-        };
+        let eventListeners;
+        if (this.options.dialogType === KuiDialogType.alert) {
+            eventListeners = {
+                onOk: () => {
+                    this.hide();
+                    // 阻断hide触发close事件, 用于在外部
+                    this.options.onOk?.();
+                    },
+                onCancel: () => {
+                    this.hide(true);
+                },
+            }
+        } else {
+            eventListeners = {
+                onClose: () => this.hide(true),
+            };
+        }
         // 解析 option中的on
         // 根据参数决定显示类型
         let vNode =
@@ -72,7 +90,7 @@ export class KuiDialogCmd {
         this.showFlag = true;
     }
 
-    hide() {
+    hide(isSub: boolean = false) {
         let beforeCloseFn = this.options.beforeClose;
         let closeFn = this.options.onClose;
         if (beforeCloseFn && !beforeCloseFn()) {
@@ -84,7 +102,7 @@ export class KuiDialogCmd {
         }
         render(null, this.containerEl);
         this.showFlag = false;
-        if (closeFn) closeFn();
+        if (isSub && closeFn) closeFn();
     }
 
     getAllListeners() {
@@ -94,4 +112,47 @@ export class KuiDialogCmd {
     isShow() {
         return this.showFlag;
     }
+}
+
+
+export interface KuiDialogAlertOptions{
+    title: string;
+    content: string;
+    okText?: string;
+    cancelText?: string;
+    onOk?: () => void;
+    onCancel?: () => void;
+    showCancel?: boolean;
+}
+export function showAlert( alertOptions: KuiDialogAlertOptions, mountTarget: string = "kui-root"): KuiDialogCmd
+{
+    const defaultOptions: KuiDialogAlertOptions = {
+        title: "提示",
+        content: "内容",
+        okText: "确定",
+        cancelText: "取消",
+        onOk: () => {},
+        onCancel: () => {},
+        showCancel: true,
+    }
+    let _alertOptions: KuiDialogAlertOptions = {
+        ...defaultOptions,
+        ...alertOptions
+    }
+    let dialogOptions: KuiDialogCmdOptions = {
+        dialogType: KuiDialogType.alert,
+        showContent: alertModel,
+        mountTarget: mountTarget,
+        onOk: _alertOptions.onOk,
+        onClose: _alertOptions.onCancel,
+    }
+    let dialog = new KuiDialogCmd(dialogOptions);
+    dialog.show({
+        title: _alertOptions.title,
+        content: _alertOptions.content,
+        okText: _alertOptions.okText,
+        cancelText: _alertOptions.cancelText,
+        showCancel: _alertOptions.showCancel,
+    });
+    return dialog;
 }

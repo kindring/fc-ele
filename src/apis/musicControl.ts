@@ -25,8 +25,20 @@ export async function addScanDir(scanSetting: MusicScanSetting)
     return await promise;
 }
 
+export async function updateScanConfig(scanConfig: MusicScanSetting)
+{
+    let [_callId, promise] = api.sendQuery(Music_Actions.scan_music_update, scanConfig);
+    return await promise;
+}
+
 export async function fetchScanConfig() : Promise<ResponseData<MusicScanSetting[]>>
 {
     let [_callId, promise] = api.sendQuery(Music_Actions.scan_settings, {});
+    return await promise;
+}
+
+export async function deleteScanConfig(id: number) : Promise<ResponseData<boolean>>
+{
+    let [_callId, promise] = api.sendQuery(Music_Actions.scan_music_delete, id);
     return await promise;
 }

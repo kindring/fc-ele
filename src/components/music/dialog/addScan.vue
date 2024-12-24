@@ -2,9 +2,10 @@
 import {defineComponent, onMounted, PropType, ref} from "vue";
 import KuiInput from "@/components/public/kui/kui-input.vue";
 import message from "@/components/public/kui/message";
-import {addScanDir, selectScanDir} from "@/apis/musicControl.ts";
+import {addScanDir, selectScanDir, updateScanConfig} from "@/apis/musicControl.ts";
 import KuiCheckbox from "@/components/public/kui/kui-checkbox.vue";
 import {MusicScanSetting} from "@/types/musicType.ts";
+import {ResponseData} from "@/types/apiTypes.ts";
 
 defineComponent({
   name: "addScanDialog"
@@ -65,9 +66,13 @@ async function selectPathHandle() {
   }
 }
 
+async function addScanDirHandle() {
+
+}
 async function submitHandle() {
+
   let param: MusicScanSetting = {
-    id: 0,
+    id: props.scanSetting.id,
     name: name.value,
     path: dirPath.value,
     scanSubDir: scanSubDir.value,
@@ -78,13 +83,23 @@ async function submitHandle() {
     message.warning('请选择需要扫描的子目录');
     return;
   }
+
+  let responseData : ResponseData<boolean>
   if (!param.name)
   {
     param.name = param.path;
   }
-  let responseData = await addScanDir(param);
+  if ( isEdit.value )
+  {
+    param.id = props.scanSetting.id;
+    responseData = await updateScanConfig(param);
+  } else
+  {
+    responseData = await addScanDir(param);
+  }
+
   if (responseData.code === 0) {
-    message.success('添加扫描配置成功');
+    message.success(isEdit?'编辑扫描配置成功':'添加扫描配置成功');
     emits('close');
   } else {
     message.error(responseData.msg);

@@ -203,7 +203,7 @@ export async function initMusicData() : PromiseResult<boolean>
 
 
 // 根据扫描地址获取扫描配置
-export async function getScanConfigByPath(path: string) : PromiseResult<MusicScanSetting[]>
+export async function getScanConfigByPath(path: string, id: number[] = []) : PromiseResult<MusicScanSetting[]>
 {
     let db = loadDb(AppDbName.music_db)
     if(!db){
@@ -214,6 +214,8 @@ export async function getScanConfigByPath(path: string) : PromiseResult<MusicSca
         db.select('name', 'path', 'scanSubDir', 'isFileRepeat')
             .from(MusicTableName.music_scan_setting)
             .where('path', path)
+            // 排除id
+            .whereNotIn('id', id)
     )
     if (err) {
         err = err as Error;
@@ -230,9 +232,11 @@ export async function getScanConfig() : PromiseResult<MusicScanSetting[]>
         logger.error('数据库初始化失败')
         return [new Error('音乐数据库初始化失败'), null]
     }
+    // 将下面的 scanSubDir 转为 boolean 类型
+
     let [err, res] = await handle(
         db.select('id', 'name', 'path', 'scanSubDir', 'isFileRepeat')
-            .from(MusicTableName.music_scan_setting)
+            .from<MusicScanSetting>(MusicTableName.music_scan_setting).withSchema(MusicTableName.music_scan_setting)
     )
     if (err) {
         err = err as Error;
@@ -275,7 +279,7 @@ export async function updateScanConfig(scanConfig: MusicScanSetting) : PromiseRe
         return [new Error('音乐数据库初始化失败'), false]
     }
     let [err, _res] = await handle(
-        db.update(scanConfig).into(MusicTableName.music_scan_setting)
+        db.update(scanConfig).into(MusicTableName.music_scan_setting).where('id', scanConfig.id)
     )
     if (err) {
         err = err as Error;

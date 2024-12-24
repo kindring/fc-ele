@@ -1,7 +1,13 @@
 import {ApiType, ErrorCode, RequestData, ResponseData} from "@/types/apiTypes.ts";
 import {Magnet_Actions, Music_Actions} from "@/apis/ApiAction.ts";
 import {c_fetchMagnetList, c_magnet_batch_update, c_magnet_delete} from "@/main/control/magnet/magnet.ts";
-import {c_fetchPlayList, c_scanMusicAdd, c_scanMusicSelect, c_scanSettings} from "@/main/control/magnet/music.ts";
+import {
+    c_fetchPlayList,
+    c_scanMusicAdd, c_scanMusicDelete,
+    c_scanMusicSelect,
+    c_scanMusicUpdate,
+    c_scanSettings
+} from "@/main/control/magnet/music.ts";
 
 export async function apiRouter(requestData: RequestData<any>){
     // 生成callId
@@ -30,10 +36,10 @@ export async function apiRouter(requestData: RequestData<any>){
             responseData = await c_scanSettings(requestData);
             break;
         case Music_Actions.scan_music_update:
-            responseData = await c_scanSettings(requestData);
+            responseData = await c_scanMusicUpdate(requestData);
             break;
         case Music_Actions.scan_music_delete:
-            responseData = await c_scanMusicAdd(requestData);
+            responseData = await c_scanMusicDelete(requestData);
             break;
         default:
             responseData = {

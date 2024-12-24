@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import {defineComponent, onBeforeMount, Ref, ref} from "vue";
+import {defineComponent, nextTick, onBeforeMount, Reactive, reactive, Ref, ref} from "vue";
 import {MusicScanSetting} from "@/types/musicType.ts";
 import EmptyView from "@/components/public/emptyView.vue";
-import {KuiDialogCmd} from "@/components/public/kui-dialog-cmd.ts";
+import {KuiDialogCmd, showAlert} from "@/components/public/kui-dialog-cmd.ts";
 
 import addScanDialog from "@/components/music/dialog/addScan.vue"
 import message from "@/components/public/kui/message";
-import {fetchScanConfig} from "@/apis/musicControl.ts";
+import {deleteScanConfig, fetchScanConfig} from "@/apis/musicControl.ts";
 import {ErrorCode} from "@/types/apiTypes.ts";
 import IconSvg from "@/components/public/icon/iconSvg.vue";
 
@@ -41,7 +41,7 @@ const kuiDialog = new KuiDialogCmd({
 
 function closeScanDialogHandle()
 {
-  // fetchScanSetting();
+  fetchScanSetting();
   return true;
 }
 
@@ -62,7 +62,6 @@ async function fetchScanSetting()
   {
     scanSetting.value = responseData.data;
   }
-  console.log(responseData);
 }
 
 onBeforeMount(()=>{
@@ -72,7 +71,36 @@ onBeforeMount(()=>{
 
 function editScanHandle(item: MusicScanSetting)
 {
-  kuiDialog.show({scanSetting: item});
+  kuiDialog.show({scanSetting: {
+    id: item.id,
+    name: item.name,
+    path: item.path,
+    scanSubDir: !!item.scanSubDir,
+    isFileRepeat: !!item.isFileRepeat
+    }});
+}
+
+async function exe_deleteScan(id: number)
+{
+  let responseData = await deleteScanConfig(id);
+  if (responseData.code === ErrorCode.success)
+  {
+    message.success(`删除成功`);
+    await fetchScanSetting();
+  } else{
+    message.error(responseData.msg);
+  }
+}
+
+async function deleteScanHandle(id: number)
+{
+  showAlert({
+    title: '删除扫描配置',
+    content: `确定要删除该扫描配置? id:${id}`,
+    onOk: () => {
+      exe_deleteScan(id)
+    }
+  }, props.windowId);
 }
 
 </script>
@@ -101,8 +129,11 @@ function editScanHandle(item: MusicScanSetting)
             <span class="value"> {{ item.isFileRepeat ? '是' : '否' }}</span>
           </div>
         </div>
-        <div class="edit-btn" @click="editScanHandle(item)">
+        <div class="edit-btn circle-btn" @click="editScanHandle(item)">
           <icon-svg icon-name="edit"/>
+        </div>
+        <div class="delete-btn circle-btn" @click="deleteScanHandle(item.id)">
+          <icon-svg icon-name="remove"/>
         </div>
       </div>
     </div>
@@ -168,20 +199,25 @@ function editScanHandle(item: MusicScanSetting)
 }
 .edit-btn{
   position: absolute;
+  right: 40px;
+  top: 5px;
+  width: 30px;
+  height: 30px;
+  font-size: 1.4rem;
+}
+.edit-btn:hover{
+  background-color: var(--color-btn-bg-hover);
+  color: var(--color-btn-text-hover);
+}
+.delete-btn{
+  position: absolute;
   right: 5px;
   top: 5px;
   width: 30px;
   height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  border-radius: 50%;
-  box-shadow: 0 0 5px 2px white;
   font-size: 1.4rem;
 }
-.edit-btn:hover{
+.delete-btn:hover{
   background-color: var(--color-btn-bg-hover);
   color: var(--color-btn-text-hover);
 }
