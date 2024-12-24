@@ -1,10 +1,10 @@
 import {dialog} from "electron"
-import {ApiType, ErrorCode, RequestData, ResponseData} from "@/types/apiTypes.ts";
+import { ErrorCode, RequestData, ResponseData} from "@/types/apiTypes.ts";
 import Logger from "@/util/logger.ts";
 import {MusicScanSetting} from "@/types/musicType.ts";
 import {
     addScanConfig,
-    deleteScanConfig,
+    deleteScanConfig, getPlayList,
     getScanConfig,
     getScanConfigByPath,
     updateScanConfig
@@ -17,17 +17,13 @@ let logger = Logger.logger('music', 'info');
 
 export async function c_fetchPlayList(requestData: RequestData<null>)
 {
-    let responseData: ResponseData<any>
-    responseData = {
-        type: ApiType.res,
-        code: ErrorCode.success,
-        callId: requestData.callId,
-        action: requestData.action,
-        msg: '暂无歌单',
-        data: [],
+    let [err, playList] = await getPlayList();
+    if (err)
+    {
+        logger.error(`[获取扫描设置列表失败] ${err.message}`)
+        return t_gen_res(requestData, ErrorCode.db, '获取扫描设置列表失败', [])
     }
-
-    return responseData;
+    return t_gen_res(requestData, ErrorCode.success, '', playList);
 }
 
 /**
@@ -37,7 +33,6 @@ export async function c_fetchPlayList(requestData: RequestData<null>)
 export async function c_scanMusicSelect(requestData: RequestData<string>): Promise<ResponseData<string>>
 {
     let defaultPath = requestData.data;
-    logger.info(`select scan dir`);
     let result = await dialog.showOpenDialog({
         defaultPath: defaultPath,
         properties: ['openDirectory'],

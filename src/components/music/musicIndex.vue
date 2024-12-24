@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import {defineComponent, Ref, ref} from "vue";
+import {defineComponent, onBeforeMount, Ref, ref} from "vue";
 import IconSvg from "@/components/public/icon/iconSvg.vue";
 import {PlayList} from "@/types/musicType.ts";
 import PlayListInfo from "./common/playListInfo.vue";
 import message from "@/components/public/kui/message";
 import MusicSetting from "@/components/music/common/musicSetting.vue";
+import {fetchPlayList} from "@/apis/musicControl.ts";
+import {ErrorCode} from "@/types/apiTypes.ts";
 
 defineComponent({
   name: "musicIndex"
@@ -78,12 +80,30 @@ function changePlayList(index: number) {
   musicViewShow.value = showPlayList;
 }
 
+async function loadPlayList()
+{
+  let responseData = await fetchPlayList();
+  if (responseData.code === ErrorCode.success)
+  {
+    playList.value = responseData.data;
+  } else
+  {
+    message.error(responseData.msg);
+  }
+}
+
+onBeforeMount(()=>{
+  loadPlayList();
+})
+
 function showMusicSetting()
 {
   message.info("show music setting");
   musicViewShow.value = showSetting;
   selectIndex.value = -1;
 }
+
+
 </script>
 
 <template>
