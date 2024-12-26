@@ -7,6 +7,7 @@ import message from "@/components/public/kui/message";
 import MusicSetting from "@/components/music/common/musicSetting.vue";
 import {fetchPlayList} from "@/apis/musicControl.ts";
 import {ErrorCode} from "@/types/apiTypes.ts";
+import {Tab, TabGroup, TabList, TabPanel, TabPanels} from "@headlessui/vue";
 
 defineComponent({
   name: "musicIndex"
@@ -21,59 +22,19 @@ defineProps({
 
 const searchText = ref('');
 
-const playList: Ref<PlayList[]> = ref<PlayList[]>([
-    {
-    id: 'default',
-    name: "喜爱的歌曲",
-    cover: "bg.jpg",
-    icon: "music",
-    description: "默认收藏夹",
-    createTime: 0,
-    lastPlayTime: 0,
-    playCount: 0,
-    trackCount: 0,
-    isPublic: true,
-    isSync: true,
-    isTagSearch: false,
-    isLike: false
-  },
-  {
-    id: 'history',
-    name: "最近播放",
-    cover: "bg.jpg",
-    icon: "music",
-    description: "默认收藏夹2",
-    createTime: 0,
-    lastPlayTime: 0,
-    playCount: 0,
-    trackCount: 0,
-    isPublic: true,
-    isSync: true,
-    isTagSearch: false,
-    isLike: false
-  },
-  {
-    id: 'local',
-    name: "本地目录",
-    cover: "bg.jpg",
-    icon: "music",
-    description: "默认收藏夹3",
-    createTime: 0,
-    lastPlayTime: 0,
-    playCount: 0,
-    trackCount: 0,
-    isPublic: true,
-    isSync: true,
-    isTagSearch: false,
-    isLike: false
-  },
-])
+const playList: Ref<PlayList[]> = ref<PlayList[]>([])
 
 const selectIndex = ref(0);
 
 const showPlayList = "showPlayList";
 const showSetting = "showSetting";
+const showScanList = "showScanList";
+
+const site_playList = "site-play-list";
+const site_scan_list = "site-scan-list";
+
 const musicViewShow = ref(showPlayList);
+const site_view = ref(site_playList);
 
 function changePlayList(index: number) {
   selectIndex.value = index;
@@ -122,21 +83,49 @@ function showMusicSetting()
           </div>
         </div>
 
-        <!--       主歌单 -->
-        <div class="play-list">
-          <div class="title">播放列表</div>
-          <div
-              v-for="(item, i) in playList"
-              :key="item.id"
-              :class="`list-item ${i == selectIndex?'select-item':''}` "
-              @click="changePlayList(i)"
-          >
-            <div class="icon">
-              <IconSvg :icon-name="item.icon" />
-            </div>
-            <span>{{item.name}}</span>
-          </div>
-        </div>
+          <TabGroup as="div" class="site-chunk play-list">
+            <TabList as="div" class="tab-head">
+              <Tab as="template" v-slot="{ selected }"  >
+                <button :class="`tab-head-item ${selected?'head-select':''}`">
+                  歌单列表
+                </button>
+              </Tab>
+              <Tab as="template" v-slot="{ selected }"  >
+                <button :class="`tab-head-item ${selected?'head-select':''}`">
+                  扫描结果
+                </button>
+              </Tab>
+            </TabList>
+            <TabPanels as="template">
+              <TabPanel as="div"  class="site-chunk site-chunk-content">
+                <div
+                    v-for="(item, i) in playList"
+                    :key="item.id"
+                    :class="`list-item ${i == selectIndex?'select-item':''}` "
+                    @click="changePlayList(i)"
+                >
+                  <div class="icon">
+                    <IconSvg :icon-name="item.icon" />
+                  </div>
+                  <span>{{item.name}}</span>
+                </div>
+              </TabPanel>
+              <TabPanel as="div"  class="site-chunk site-chunk-content">
+                <div
+                    v-for="(item, i) in playList"
+                    :key="item.id"
+                    :class="`list-item ${i == selectIndex?'select-item':''}` "
+                    @click="changePlayList(i)"
+                >
+                  <div class="icon">
+                    <IconSvg :icon-name="item.icon" />
+                  </div>
+                  <span>扫描{{item.name}}</span>
+                </div>
+              </TabPanel>
+            </TabPanels>
+          </TabGroup>
+
 
 <!--        设置-->
         <div class="setting-group">
@@ -242,68 +231,6 @@ function showMusicSetting()
   color: var(--color-text-money);
 }
 
-
-.play-list {
-  width: 100%;
-  height: calc(100% - 140px);
-  overflow-y: auto;
-  padding-top: 10px;
-}
-.play-list .title{
-  width: 100%;
-  height: 40px;
-  line-height: 40px;
-  font-size: 1.3em;
-  padding-left: 0.8em;
-  border-bottom: 1px solid var(--color-border);
-  box-sizing: border-box;
-}
-.play-list .list-item{
-  width: 100%;
-  height: 35px;
-  line-height: 35px;
-  display: flex;
-  padding-left: 0.8em;
-  box-sizing: border-box;
-  position: relative;
-  font-size: 0.9em;
-}
-.play-list .list-item:hover , .play-list .select-item{
-  background-color: var(--color-background-soft);
-}
-.list-item:hover::before ,.play-list .select-item::before{
-  content: "";
-  width: 5px;
-  height: 25px;
-  position: absolute;
-  left: 0.5em;
-  top: 5px;
-  background-color: var(--color-text-money);
-}
-.play-list .list-item .icon{
-  width: 30px;
-  height: 30px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  color: var(--color-text);
-  flex-shrink: 0;
-  font-size: 1.2em;
-}
-.play-list .list-item span{
-  width: calc(100% - 40px);
-  margin-left: 10px;
-  height: 30px;
-  line-height: 30px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  text-align: left;
-  color: var(--color-text);
-  flex-shrink: 0;
-}
-
 .setting-group{
   width: calc(100% - 20px);
   height: 40px;
@@ -317,4 +244,115 @@ function showMusicSetting()
   color: var(--color-text-money);
 }
 
+</style>
+
+<style>
+
+.site-chunk {
+  width: 100%;
+  overflow-y: auto;
+  padding-top: 10px;
+  position: relative;
+}
+.site-chunk-content {
+  height: calc(100% - 50px);
+}
+.play-list {
+  height: calc(100% - 140px);
+}
+.site-chunk .title{
+  width: 100%;
+  height: 40px;
+  line-height: 40px;
+  font-size: 1.3em;
+  padding-left: 0.8em;
+  border-bottom: 1px solid var(--color-border);
+  box-sizing: border-box;
+}
+.tab-head
+{
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--color-border);
+  box-sizing: border-box;
+  padding-left: 3px
+}
+.tab-head-item{
+  height: 100%;
+  padding: 3px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  flex-shrink: 0;
+  border-right: 1px solid var(--color-border);
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+.tab-head-item:hover{
+  color: var(--color-text-money);
+}
+.tab-head-item:first-child{
+  border-radius: 5px 0 0 0;
+}
+.tab-head-item:last-child{
+  border-radius: 0 5px 0 0;
+}
+.tab-head-item::selection {
+  background: transparent;
+}
+.tab-head-item.head-select{
+  color: var(--color-text-show);
+  background-color: var(--color-background-soft);
+}
+.site-chunk .list-item{
+  width: 100%;
+  height: 35px;
+  line-height: 35px;
+  display: flex;
+  padding-left: 0.8em;
+  box-sizing: border-box;
+  position: relative;
+  font-size: 0.9em;
+}
+.site-chunk .list-item:hover , .site-chunk .select-item{
+  background-color: var(--color-background-soft);
+}
+.list-item:hover::before ,.site-chunk .select-item::before{
+  content: "";
+  width: 5px;
+  height: 25px;
+  position: absolute;
+  left: 0.5em;
+  top: 5px;
+  background-color: var(--color-text-money);
+}
+.site-chunk .list-item .icon{
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: var(--color-text);
+  flex-shrink: 0;
+  font-size: 1.2em;
+}
+.site-chunk .list-item span{
+  width: calc(100% - 40px);
+  margin-left: 10px;
+  height: 30px;
+  line-height: 30px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  text-align: left;
+  color: var(--color-text);
+  flex-shrink: 0;
+}
 </style>

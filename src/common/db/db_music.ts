@@ -236,7 +236,7 @@ export async function getScanConfig() : PromiseResult<MusicScanSetting[]>
 
     let [err, res] = await handle(
         db.select('id', 'name', 'path', 'scanSubDir', 'isFileRepeat')
-            .from<MusicScanSetting>(MusicTableName.music_scan_setting).withSchema(MusicTableName.music_scan_setting)
+            .from<MusicScanSetting>(MusicTableName.music_scan_setting)
     )
     if (err) {
         err = err as Error;
