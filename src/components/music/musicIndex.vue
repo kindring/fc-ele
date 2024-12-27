@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import {defineComponent, onBeforeMount, Ref, ref} from "vue";
 import IconSvg from "@/components/public/icon/iconSvg.vue";
-import {PlayList} from "@/types/musicType.ts";
+import {MusicScanSetting, PlayList} from "@/types/musicType.ts";
 import PlayListInfo from "./common/playListInfo.vue";
 import message from "@/components/public/kui/message";
 import MusicSetting from "@/components/music/common/musicSetting.vue";
-import {fetchPlayList} from "@/apis/musicControl.ts";
+import {fetchPlayList, fetchScanConfig} from "@/apis/musicControl.ts";
 import {ErrorCode} from "@/types/apiTypes.ts";
 import {Tab, TabGroup, TabList, TabPanel, TabPanels} from "@headlessui/vue";
 
@@ -30,11 +30,14 @@ const showPlayList = "showPlayList";
 const showSetting = "showSetting";
 const showScanList = "showScanList";
 
+
+
 const site_playList = "site-play-list";
 const site_scan_list = "site-scan-list";
+const site_views = [site_playList, site_scan_list]
 
 const musicViewShow = ref(showPlayList);
-const site_view = ref(site_playList);
+const site_view_key = ref(site_views[0]);
 
 function changePlayList(index: number) {
   selectIndex.value = index;
@@ -65,6 +68,41 @@ function showMusicSetting()
 }
 
 
+const siteTab = ref(0)
+const scanSettings: Ref<MusicScanSetting[]> = ref<MusicScanSetting[]>([])
+async function fetchScanSetting()
+{
+  let responseData = await fetchScanConfig();
+  if (responseData.code === ErrorCode.success)
+  {
+    scanSettings.value = responseData.data;
+  }
+}
+
+function changeTab(index: number) {
+  if (site_view_key.value === site_views[index])
+  {
+    return;
+  }
+  siteTab.value = index
+  site_view_key.value = site_views[index];
+  if (site_view_key.value === site_playList)
+  {
+    loadPlayList();
+  } else {
+    message.info("show scan list");
+    fetchScanSetting();
+  }
+}
+
+
+const selectScanIndex = ref(0);
+function changeScanList(index: number)
+{
+  let scanSetting = scanSettings.value[index];
+  console.log(scanSetting);
+  selectScanIndex.value = index;
+}
 </script>
 
 <template>
@@ -83,7 +121,7 @@ function showMusicSetting()
           </div>
         </div>
 
-          <TabGroup as="div" class="site-chunk play-list">
+          <TabGroup as="div" class="site-chunk play-list" :selectedIndex="siteTab" @change="changeTab">
             <TabList as="div" class="tab-head">
               <Tab as="template" v-slot="{ selected }"  >
                 <button :class="`tab-head-item ${selected?'head-select':''}`">
@@ -92,7 +130,7 @@ function showMusicSetting()
               </Tab>
               <Tab as="template" v-slot="{ selected }"  >
                 <button :class="`tab-head-item ${selected?'head-select':''}`">
-                  扫描结果
+                  扫描目录
                 </button>
               </Tab>
             </TabList>
@@ -112,14 +150,11 @@ function showMusicSetting()
               </TabPanel>
               <TabPanel as="div"  class="site-chunk site-chunk-content">
                 <div
-                    v-for="(item, i) in playList"
+                    v-for="(item, i) in scanSettings"
                     :key="item.id"
-                    :class="`list-item ${i == selectIndex?'select-item':''}` "
-                    @click="changePlayList(i)"
+                    :class="`list-item ${i == selectScanIndex?'select-item':''}` "
+                    @click="changeScanList(i)"
                 >
-                  <div class="icon">
-                    <IconSvg :icon-name="item.icon" />
-                  </div>
                   <span>扫描{{item.name}}</span>
                 </div>
               </TabPanel>
