@@ -40,7 +40,7 @@ const isFileRepeat = ref(false);
 
 onMounted(()=>{
   console.log(props.scanSetting);
-  if ( props.scanSetting && props.scanSetting.id > 0) {
+  if ( props.scanSetting && props.scanSetting.id > -1) {
     isEdit.value = true;
     name.value = props.scanSetting.name;
     dirPath.value = props.scanSetting.path;

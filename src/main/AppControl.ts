@@ -13,6 +13,7 @@ import hook from "@/util/hook.ts";
 import Path from "path";
 import {initMusicData} from "@/common/db/db_music.ts";
 import {ResType} from "@/util/promiseHandle.ts";
+import {start_scan} from "@/main/control/magnet/music.ts";
 
 let logger = Logger.logger('controlWindow', 'info');
 
@@ -336,6 +337,7 @@ export async function initApp(appConfig: AppConfig, app: Electron.App) : Promise
     if(err){
         logger.error(`[应用初始化] 初始化音乐库失败: ${err}`);
     }
+    await start_scan();
     if(flag){
         logger.info(`[应用初始化] 初始化音乐库完成`);
     }

@@ -2,7 +2,7 @@ import {ApiType, ErrorCode, RequestData, ResponseData} from "@/types/apiTypes.ts
 import {Magnet_Actions, Music_Actions} from "@/apis/ApiAction.ts";
 import {c_fetchMagnetList, c_magnet_batch_update, c_magnet_delete} from "@/main/control/magnet/magnet.ts";
 import {
-    c_fetchPlayList,
+    c_fetchPlayList, c_like_music, c_load_scan_music,
     c_scanMusicAdd, c_scanMusicDelete,
     c_scanMusicSelect,
     c_scanMusicUpdate,
@@ -40,6 +40,12 @@ export async function apiRouter(requestData: RequestData<any>){
             break;
         case Music_Actions.scan_music_delete:
             responseData = await c_scanMusicDelete(requestData);
+            break;
+        case Music_Actions.scan_music_fetch:
+            responseData = await c_load_scan_music(requestData);
+            break;
+        case Music_Actions.like_music:
+            responseData = await c_like_music(requestData);
             break;
         default:
             responseData = {

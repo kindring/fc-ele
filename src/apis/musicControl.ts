@@ -1,7 +1,7 @@
 import api from "./baseApi.ts"
-import {ResponseData} from "@/types/apiTypes.ts";
+import {Order, Page, ResponseData} from "@/types/apiTypes.ts";
 import {Music_Actions} from "@/apis/ApiAction.ts";
-import {MusicScanSetting, PlayList} from "@/types/musicType.ts";
+import {MusicInfo, MusicScanSetting, PlayList} from "@/types/musicType.ts";
 
 export async function fetchPlayList(): Promise< ResponseData<PlayList[]> >
 {
@@ -40,4 +40,12 @@ export async function deleteScanConfig(id: number) : Promise<ResponseData<boolea
 {
     let [_callId, promise] = api.sendQuery(Music_Actions.scan_music_delete, id);
     return await promise;
+}
+
+export async function fetchScanMusic(scanId: number, page: number = 1, size: number = 10, 
+                                     orderBy: string = 'id', 
+                                     order: Order = Order.desc): Promise<ResponseData<Page<MusicInfo[]>>>
+{
+    let [_callId, promise] = api.sendQuery(Music_Actions.scan_music_fetch, {scanId, page, size, orderBy, order});
+    return await promise as ResponseData<Page<MusicInfo[]>>;
 }

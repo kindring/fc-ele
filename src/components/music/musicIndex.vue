@@ -24,7 +24,7 @@ const searchText = ref('');
 
 const playList: Ref<PlayList[]> = ref<PlayList[]>([])
 
-const selectIndex = ref(0);
+const selectPlaylistIndex = ref(0);
 
 const showPlayList = "showPlayList";
 const showSetting = "showSetting";
@@ -40,7 +40,7 @@ const musicViewShow = ref(showPlayList);
 const site_view_key = ref(site_views[0]);
 
 function changePlayList(index: number) {
-  selectIndex.value = index;
+  selectPlaylistIndex.value = index;
   musicViewShow.value = showPlayList;
 }
 
@@ -64,7 +64,7 @@ function showMusicSetting()
 {
   message.info("show music setting");
   musicViewShow.value = showSetting;
-  selectIndex.value = -1;
+  selectPlaylistIndex.value = -1;
 }
 
 
@@ -79,7 +79,7 @@ async function fetchScanSetting()
   }
 }
 
-function changeTab(index: number) {
+async function changeTab(index: number) {
   if (site_view_key.value === site_views[index])
   {
     return;
@@ -88,11 +88,14 @@ function changeTab(index: number) {
   site_view_key.value = site_views[index];
   if (site_view_key.value === site_playList)
   {
-    loadPlayList();
+    await loadPlayList();
+    selectPlaylistIndex.value = 0;
   } else {
     message.info("show scan list");
-    fetchScanSetting();
+    await fetchScanSetting();
+    selectScanIndex.value = 0;
   }
+
 }
 
 
@@ -139,7 +142,7 @@ function changeScanList(index: number)
                 <div
                     v-for="(item, i) in playList"
                     :key="item.id"
-                    :class="`list-item ${i == selectIndex?'select-item':''}` "
+                    :class="`list-item ${i == selectPlaylistIndex?'select-item':''}` "
                     @click="changePlayList(i)"
                 >
                   <div class="icon">
@@ -155,7 +158,7 @@ function changeScanList(index: number)
                     :class="`list-item ${i == selectScanIndex?'select-item':''}` "
                     @click="changeScanList(i)"
                 >
-                  <span>扫描{{item.name}}</span>
+                  <span>{{item.name}}</span>
                 </div>
               </TabPanel>
             </TabPanels>
@@ -168,7 +171,7 @@ function changeScanList(index: number)
         </div>
       </div>
       <div class="play-list-info">
-        <play-list-info v-if="musicViewShow === showPlayList" :play-list="playList[selectIndex]"/>
+        <play-list-info v-if="musicViewShow === showPlayList" :play-list="playList[selectPlaylistIndex]"/>
         <music-setting v-if="musicViewShow === showSetting"
                        :window-id="windowId"/>
       </div>

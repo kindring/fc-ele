@@ -71,6 +71,7 @@ onBeforeMount(()=>{
 
 function editScanHandle(item: MusicScanSetting)
 {
+  console.log('editScanHandle', item)
   kuiDialog.show({scanSetting: {
     id: item.id,
     name: item.name,

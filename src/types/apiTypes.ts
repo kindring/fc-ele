@@ -23,6 +23,11 @@ export enum ApiType {
     notify = 0xFD,
 }
 
+export enum Order {
+    asc = 'asc',
+    desc = 'desc',
+}
+
 
 // 请求参数
 export interface RequestData<T>
@@ -62,6 +67,22 @@ export interface NotifyData
     msg: string;
     // 返回的数据
     data: any;
+}
+
+
+export interface Page<T> {
+    // 请求页数
+    page: number;
+    // 每页数量
+    size: number;
+    // 总文件数量
+    total: number;
+    // 排序字段
+    sort: string;
+    // 排序方式
+    order: Order;
+    // 实际数据
+    data: T;
 }
 
 

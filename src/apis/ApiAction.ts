@@ -12,4 +12,6 @@ export enum Music_Actions {
   scan_settings = 'scan_settings',
   scan_music_update = 'scan_music_update',
   scan_music_delete = 'scan_music_delete',
+  scan_music_fetch = 'scan_music_fetch',
+  like_music = 'like_music',
 }

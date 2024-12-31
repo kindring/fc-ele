@@ -1,5 +1,5 @@
 export interface PlayList {
-    id: string;
+    id: number;
     name: string;   // 歌单名称
     icon: string;   // 歌单icon
     cover: string;  // 封面图片地址
@@ -20,20 +20,38 @@ export enum MusicType{
 }
 
 export interface MusicInfo {
-    id: string;
-    name: string;   // 歌曲名称
-    artists: string[];  // 歌手名称
-    album: string;  // 专辑名称
-    cover: string;  // 歌曲封面图片地址
-    duration: number;   // 歌曲时长 单位: 秒
-    isLike: boolean;  // 是否喜欢
-    origin: string; // 歌曲来源 用于实现远程链接设备获取音频源文件.
-    type: MusicType; // 歌曲类型, 用于区分歌曲源存放位置
-    isLocal: boolean; // 本地是否存在
-    filePath: string; // 文件存放路径
-    lyricPath: string;  // 歌词文件地址
-    tags: string[]; // 歌曲标签
-    playCount: number;  // 播放次数
+    // 自增id
+    id: number;
+    // 唯一建
+    key: string;
+    // 歌曲名称
+    name: string;
+    // 歌手名称
+    artists: string[];
+    // 专辑名称
+    album: string;
+    // 歌曲封面图片地址
+    cover: string;
+    // 歌曲时长 单位: 秒
+    duration: number;
+    // 是否喜欢
+    isLike: boolean;
+    // 歌曲来源 用于实现远程链接设备获取音频源文件.
+    origin: string;
+    // 歌曲类型, 用于区分歌曲源存放位置
+    type: MusicType;
+    // 本地是否存在
+    isLocal: boolean;
+    // 文件存放路径
+    filePath: string;
+    // 歌词文件地址
+    lyricPath: string;
+    // 歌曲标签
+    tags: string[];
+    // 播放次数
+    playCount: number;
+    // 由哪一个扫描配置添加的
+    scanId: number;
 }
 // 歌单音频信息
 export interface PlayListMusicInfo {
@@ -67,3 +85,8 @@ export enum MusicTableName
     music_play_list_songs = 'music_play_list_songs',// 歌单歌曲表
 }
 
+export interface param_music_like
+{
+    musicId: number;
+    isLike: boolean;
+}
