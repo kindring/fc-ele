@@ -236,19 +236,21 @@ async function _read_music_info(filePath: string) : PromiseResult<IAudioMetadata
  */
 async function _scan_dir(scanSetting: MusicScanSetting, basePath: string = "") :PromiseResult<any>
 {
-    let scanPath = basePath? scanSetting.path : scanSetting.path;
+    // logger.info(`_scan_dir ${scanSetting.path}`)
+    let scanPath = basePath? basePath : scanSetting.path;
     let [err, res] = await handle( fs.readdir(scanPath))
     let fileArray: string[] = [];
     if (err) {
         logger.error(`[扫描目录失败] ${err.message}`)
         return [err, false];
     }
+    // console.log(res)
     // 排除目录
     for (let filename of res as string[])
     {
-        console.log(filename)
+        // console.log(filename)
         // 判断类型
-        let filePath = scanSetting.path + '/' + filename;
+        let filePath = path.join(scanPath, filename)
         // 排除隐藏文件
         if (filename.startsWith('.'))
         {
@@ -327,8 +329,8 @@ export async function _scan_(scanSetting: MusicScanSetting)
         return;
     }
     scan_task[scanSetting.id] = true;
-    console.log(scanSetting)
-    console.log(scanSetting.path)
+    // console.log(scanSetting)
+    // console.log(scanSetting.path)
     // 缓存扫描信息
     let catchPath = path.join(scanSetting.path, './.catch.json')
     // 判断文件是否存在
@@ -338,7 +340,7 @@ export async function _scan_(scanSetting: MusicScanSetting)
         fs.writeFileSync(catchPath, '{}');
     }
     let catchInfo = JSON.parse(fs.readFileSync(catchPath, 'utf-8'));
-    console.log(catchInfo)
+    // console.log(catchInfo)
     let [err, fileArray] = await _scan_dir(scanSetting);
 
     let success_count = 0;
