@@ -322,25 +322,31 @@ async function _next_id(scanSetting_id: number):Promise<string>
 
 export async function _scan_(scanSetting: MusicScanSetting)
 {
-
+    const __func__ = '_scan_(scanSetting: MusicScanSetting)';
     if (scanSetting && scanSetting.id && scan_task[scanSetting.id])
     {
         logger.error(`[扫描任务重复] ${scanSetting.id}`)
         return;
     }
     scan_task[scanSetting.id] = true;
+    // 判断扫描路径是否存在
+    if (!fs.existsSync(scanSetting.path))
+    {
+        logger.error(`${__func__} [${scanSetting.id}] ${scanSetting.name} 路径丢失 ${scanSetting.path}`)
+        return;
+    }
     // console.log(scanSetting)
     // console.log(scanSetting.path)
     // 缓存扫描信息
     let catchPath = path.join(scanSetting.path, './.catch.json')
+    let catchInfo: Record<string, number> = {};
     // 判断文件是否存在
-    if ( !fs.existsSync(catchPath) )
+    if ( fs.existsSync(catchPath) )
     {
-        // 文件不存在, 创建空文件
-        fs.writeFileSync(catchPath, '{}');
+        catchInfo = JSON.parse(fs.readFileSync(catchPath, 'utf-8'));
     }
-    let catchInfo = JSON.parse(fs.readFileSync(catchPath, 'utf-8'));
     // console.log(catchInfo)
+
     let [err, fileArray] = await _scan_dir(scanSetting);
 
     let success_count = 0;
@@ -348,15 +354,16 @@ export async function _scan_(scanSetting: MusicScanSetting)
         logger.error(`[扫描目录失败] ${err.message}`)
         return;
     }
-    logger.info(`[扫描目录] ${fileArray.length}`)
 
+
+    console.log(fileArray)
     for (let filePath of fileArray as string)
     {
         // 判断文件是否已经扫描过
         if (catchInfo[filePath])
         {
             // 判断文件最新的时间
-            if (catchInfo[filePath] > fs.statSync(filePath).mtimeMs)
+            if (catchInfo[filePath] >= fs.statSync(filePath).mtimeMs)
             {
                 // 文件没有更新, 跳过
                 continue;
@@ -371,24 +378,57 @@ export async function _scan_(scanSetting: MusicScanSetting)
         }
         if (musicMetaData)
         {
+            // console.log(musicMetaData)
             // 获取文件更新时间
             catchInfo[filePath] = fs.statSync(filePath).mtimeMs;
             // 将封面文件写入到 本地 文件夹
             let coversDir = path.join(scanSetting.path, './.covers');
+            // 如果文件的路径是scanSetting.path的子目录, 则再.cobers 目录下创建对应的子文件夹
+            if (filePath.startsWith(scanSetting.path))
+            {
+                let subDir = filePath.substring(scanSetting.path.length + 1);
+                subDir = path.join(coversDir, subDir);
+                coversDir = path.dirname(subDir);
+            }
             if (!fs.existsSync(coversDir))
             {
-                fs.mkdirSync(coversDir);
+                fs.mkdirSync(coversDir,  { recursive: true });
             }
-            let music_name = musicMetaData.common.title? musicMetaData.common.title : path.basename(filePath);
-            let nextId: string = await _next_id(scanSetting.id);
-            let coverPath = path.join(coversDir, `${nextId}_${music_name}.jpg`);
+            // console.log(musicMetaData.common)
+            let music_name = '';
+            if (musicMetaData.common.title)
+            {
+                music_name = musicMetaData.common.title + `_${musicMetaData.common.artist??''}`;
+            } else
+            {
+                music_name = path.basename(filePath);
+                // 移除后缀名
+                music_name = music_name.substring(0, music_name.lastIndexOf('.'));
+            }
+            // 移除music_name中的特殊字符
+            music_name = music_name.replace(/[\\/:*?"<>|]/g, '');
+            // let nextId: string = await _next_id(scanSetting.id);
+            // 如果是子文件夹. 则创建对应的子目录存放封面
+
+            let coverPath = "";
+
             if (musicMetaData.common.picture && musicMetaData.common.picture.length > 0)
             {
+                coverPath = path.join(coversDir, `${music_name}.jpg`);
+                // console.log(coverPath)
+                // 判断封面是否存在
+                if (fs.existsSync(coverPath))
+                {
+                    coverPath = path.join(coversDir, `${music_name}_${randomAzStr(4)}.jpg`);
+                }
                 fs.writeFileSync(coverPath, musicMetaData.common.picture[0].data);
+                // console.log("写入成功")
+            } else {
+                console.log(`[获取音频文件信息失败] ${filePath}`)
             }
             let musicInfo: MusicInfo = {
                 id: -1,
-                key: nextId,
+                key: '',
                 name: music_name,
                 album: musicMetaData.common.album? musicMetaData.common.album : '',
                 artists: musicMetaData.common.artists? musicMetaData.common.artists : [],
@@ -404,6 +444,7 @@ export async function _scan_(scanSetting: MusicScanSetting)
                 playCount: 0,
                 lyricPath: '',
             };
+            // console.log(musicInfo)
             let _bool : ResType<boolean> = false;
             [err, _bool] = await addMusic(musicInfo) ;
             if (err)
@@ -414,6 +455,9 @@ export async function _scan_(scanSetting: MusicScanSetting)
             success_count++;
         }
     }
+    logger.info(`[扫描目录] 扫描配置: ${scanSetting.id} 新增歌曲: ${success_count} 目录总歌曲: ${fileArray.length}`)
+    // 保存扫描信息
+    fs.writeFileSync(catchPath, JSON.stringify(catchInfo));
 
     // 移除扫描任务
     delete scan_task[scanSetting.id];

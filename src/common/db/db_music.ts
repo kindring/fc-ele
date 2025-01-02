@@ -105,7 +105,7 @@ async function _initSongsTable(db : Knex): PromiseResult<boolean>
         return [new Error('音频表初始化'), false]
     }
     if (hasTable) {
-        if (false)
+        if (true)
         {
             // 移除旧数据
             // 更新表字段
@@ -271,10 +271,13 @@ export async function getScanConfigByPath(path: string, id: number[] = []) : Pro
         logger.error('数据库初始化失败')
         return [new Error('音乐数据库初始化失败'), null]
     }
+    // 路径应该是前面部分不能重复, 例如如果已经添加了 /home/user/music 那么 /home/user/music/chinese 就无法添加
+    // /home/user/music
     let [err, res] = await handle(
         db.select('name', 'path', 'scanSubDir', 'isFileRepeat')
             .from(MusicTableName.music_scan_setting)
-            .where('path', path)
+            .where('path', 'like', `${path}%`)
+            .orWhere('path', path)
             // 排除id
             .whereNotIn('id', id)
     )
@@ -499,7 +502,7 @@ export async function addMusic(music: MusicInfo): PromiseResult<boolean>
         playCount:music.playCount,
         scanId: music.scanId
     }
-    console.log(saveMusic);
+    // console.log(saveMusic);
     let [err, _res] = await handle(
         db.insert(saveMusic).into(MusicTableName.music_songs)
     )
@@ -510,6 +513,8 @@ export async function addMusic(music: MusicInfo): PromiseResult<boolean>
     }
     return [null, true];
 }
+
+
 
 export async function likeMusic(id: number, isLike: boolean) : PromiseResult<boolean>
 {
