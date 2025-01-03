@@ -45,3 +45,67 @@
     box-sizing: border-box;
     padding: 0 10px;
 }
+
+
+
+
+.music-lists {
+    width: 100%;
+    height: calc(100% - 160px);
+    overflow: hidden;
+}
+.music-list-head{
+    width: calc(100% - 30px);
+    height: 50px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+.music-list-con{
+    width: 100%;
+    height: calc(100% - 51px);
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+.music-list-item {
+    border-bottom: 1px solid #ccc; /* 可选：增加底部边框，分隔各行 */
+    position: relative;
+    display: grid; /* 使用 Grid 布局 */
+    grid-template-columns: auto 1fr 1fr 1fr 1fr 1fr; /* 设置列的布局 */
+    gap: 10px; /* 列之间的间距 */
+    width: 100%;
+    height: 50px;
+}
+
+
+.cover {
+    width: 50px; /* 封面图片固定宽度 */
+    height: 50px; /* 和高度保持一致 */
+    overflow: hidden; /* 隐藏超出部分 */
+}
+
+.cover img {
+    width: 100%; /* 图片宽度100% */
+    height: auto; /* 高度自适应 */
+}
+
+.music-list-item > * {
+    text-align: left; /* 文本左对齐 */
+    height: 100%; /* 所有列的最小高度一致 */
+    display: flex;
+    align-items: center;
+}
+.more{
+    color: var(--color-text-pirmary);
+    position: absolute;
+    right: 0.5rem;
+}
+.music-list-con .isLike , .music-list-con .more{
+    width: 30px;
+    display: flex;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.music-list-con .music-list-item:hover{
+    background-color: var(--color-background-soft);
+}

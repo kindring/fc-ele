@@ -8,6 +8,7 @@ import MusicSetting from "@/components/music/common/musicSetting.vue";
 import {fetchPlayList, fetchScanConfig} from "@/apis/musicControl.ts";
 import {ErrorCode} from "@/types/apiTypes.ts";
 import {Tab, TabGroup, TabList, TabPanel, TabPanels} from "@headlessui/vue";
+import ScanListInfo from "@/components/music/common/scanListInfo.vue";
 
 defineComponent({
   name: "musicIndex"
@@ -89,11 +90,12 @@ async function changeTab(index: number) {
   if (site_view_key.value === site_playList)
   {
     await loadPlayList();
-    selectPlaylistIndex.value = 0;
+    // selectPlaylistIndex.value = 0;
+    changePlayList(0);
   } else {
     message.info("show scan list");
     await fetchScanSetting();
-    selectScanIndex.value = 0;
+    changeScanList(0);
   }
 
 }
@@ -105,6 +107,7 @@ function changeScanList(index: number)
   let scanSetting = scanSettings.value[index];
   console.log(scanSetting);
   selectScanIndex.value = index;
+  musicViewShow.value = showScanList;
 }
 </script>
 
@@ -172,6 +175,7 @@ function changeScanList(index: number)
       </div>
       <div class="play-list-info">
         <play-list-info v-if="musicViewShow === showPlayList" :play-list="playList[selectPlaylistIndex]"/>
+        <scan-list-info v-if="musicViewShow === showScanList" :scan-setting="scanSettings[selectScanIndex]"/>
         <music-setting v-if="musicViewShow === showSetting"
                        :window-id="windowId"/>
       </div>
