@@ -337,7 +337,7 @@ export async function initApp(appConfig: AppConfig, app: Electron.App) : Promise
     if(err){
         logger.error(`[应用初始化] 初始化音乐库失败: ${err}`);
     }
-    await start_scan();
+    // start_scan();
     if(flag){
         logger.info(`[应用初始化] 初始化音乐库完成`);
     }

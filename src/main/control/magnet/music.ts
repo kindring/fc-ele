@@ -109,6 +109,9 @@ export async function c_scanMusicAdd(requestData: RequestData<MusicScanSetting>)
         return t_gen_res(requestData, ErrorCode.db, '添加扫描设置失败', false)
     }
     res = res as boolean;
+    if (res) {
+        _scan_(scanSetting);
+    }
     return t_res_ok(requestData,  res)
 }
 
@@ -170,9 +173,10 @@ export async function c_load_scan_music(requestData: RequestData<Page<number>>)
 {
     let queryParam = requestData.data;
     let [err, res] = await getMusicsByScanId(queryParam.data,
+        queryParam.key,
         queryParam.page,
         queryParam.size,
-        queryParam.order,
+        queryParam.sort,
         queryParam.order)
     if (err) {
         logger.error(`[音频扫描] 获取扫描到的音频失败 ${err.message}`)
@@ -383,6 +387,7 @@ export async function _scan_(scanSetting: MusicScanSetting)
             catchInfo[filePath] = fs.statSync(filePath).mtimeMs;
             // 将封面文件写入到 本地 文件夹
             let coversDir = path.join(scanSetting.path, './.covers');
+            let coverName = "";
             // 如果文件的路径是scanSetting.path的子目录, 则再.cobers 目录下创建对应的子文件夹
             if (filePath.startsWith(scanSetting.path))
             {
@@ -398,15 +403,18 @@ export async function _scan_(scanSetting: MusicScanSetting)
             let music_name = '';
             if (musicMetaData.common.title)
             {
-                music_name = musicMetaData.common.title + `_${musicMetaData.common.artist??''}`;
+                music_name = musicMetaData.common.title;
+                coverName = music_name + `_${musicMetaData.common.artist??''}`
             } else
             {
                 music_name = path.basename(filePath);
                 // 移除后缀名
                 music_name = music_name.substring(0, music_name.lastIndexOf('.'));
+                coverName = music_name;
             }
+
             // 移除music_name中的特殊字符
-            music_name = music_name.replace(/[\\/:*?"<>|]/g, '');
+            coverName = coverName.replace(/[\\/:*?"<>|]/g, '');
             // let nextId: string = await _next_id(scanSetting.id);
             // 如果是子文件夹. 则创建对应的子目录存放封面
 
@@ -414,18 +422,19 @@ export async function _scan_(scanSetting: MusicScanSetting)
 
             if (musicMetaData.common.picture && musicMetaData.common.picture.length > 0)
             {
-                coverPath = path.join(coversDir, `${music_name}.jpg`);
+                coverPath = path.join(coversDir, `${coverName}.jpg`);
                 // console.log(coverPath)
                 // 判断封面是否存在
                 if (fs.existsSync(coverPath))
                 {
-                    coverPath = path.join(coversDir, `${music_name}_${randomAzStr(4)}.jpg`);
+                    coverPath = path.join(coversDir, `${coverName}_${randomAzStr(4)}.jpg`);
                 }
                 fs.writeFileSync(coverPath, musicMetaData.common.picture[0].data);
                 // console.log("写入成功")
             } else {
                 console.log(`[获取音频文件信息失败] ${filePath}`)
             }
+            console.log(musicMetaData)
             let musicInfo: MusicInfo = {
                 id: -1,
                 key: '',
@@ -480,4 +489,11 @@ export async function start_scan()
     }
 }
 
+
+export async function c_music_appStart(requestData: RequestData<any>)
+{
+    logger.info(`[音乐播放器启动]`)
+    start_scan();
+    return t_res_ok(requestData, true)
+}
 

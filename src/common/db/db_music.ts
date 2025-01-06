@@ -109,11 +109,19 @@ async function _initSongsTable(db : Knex): PromiseResult<boolean>
         {
             // 移除旧数据
             // 更新表字段
+            console.log('修改音频表信息');
+            // 打印表结构
+            // 移除表
+            // 字段修改 scanId 从 string -> integer
+            // await db.schema.alterTable(MusicTableName.music_songs, (table) => {
+            //     table.dropColumn('scanId')
+            // })
+
             // await db.schema.alterTable(MusicTableName.music_songs, (table) => {
             //     // table.string('key')
-            //     table.string('scanId')
+            //     table.integer('scanId')
             // })
-            await removeMusicByScanId(0);
+            await removeMusicByScanId(4);
         }
         return [null, true];
     }
@@ -533,8 +541,19 @@ export async function likeMusic(id: number, isLike: boolean) : PromiseResult<boo
     }
     return [null, true];
 }
-export async function getMusicsByScanId(scanId: number, page: number = 1, size: number = 10,
-                                        orderBy: string = 'id', order: 'asc' | 'desc' = 'asc')
+
+
+/**
+ * 根据扫描配置ID获取音乐
+ * @param scanId
+ * @param key
+ * @param page
+ * @param size
+ * @param sort
+ * @param order
+ */
+export async function getMusicsByScanId(scanId: number, key: string = '', page: number = 1, size: number = 10,
+                                        sort: string = 'id', order: 'asc' | 'desc' = 'asc')
     : PromiseResult<Page<MusicInfo[]>>
 {
     let db = loadDb(AppDbName.music_db)
@@ -549,7 +568,8 @@ export async function getMusicsByScanId(scanId: number, page: number = 1, size: 
         page: page,
         size: size,
         order: order as Order,
-        sort: orderBy
+        sort: sort,
+        key: key,
     }
     if (page === 1)
     {
@@ -557,18 +577,27 @@ export async function getMusicsByScanId(scanId: number, page: number = 1, size: 
         countPromise = db.count('id as count')
             .from(MusicTableName.music_songs)
             .where('scanId', scanId)
+            if (key) {
+                countPromise.andWhere('key', 'like', `%${key}%`)
+            }
     } else
     {
-        countPromise = Promise.resolve({count: 0});
+        countPromise = Promise.resolve([{count: 0}]);
     }
     let listPromise = db.select(...Music_field)
         .from(MusicTableName.music_songs)
         .where('scanId', scanId)
-        .limit(size)
+        if (key) {
+            console.log('key')
+            listPromise.andWhere('key', 'like', `%${key}%`)
+        }
+        listPromise.limit(size)
         .offset((page - 1) * size)
-        .orderBy(orderBy, order)
+        .orderBy(sort, order)
 
-    let [err, res] = await handle<[{ count: number}, MusicInfo[]]>(Promise.all([countPromise, listPromise]) as Promise<[{ count: number}, MusicInfo[]]>)
+
+    let [err, res] = await handle<[[{ count: number}], MusicInfo[]]>(
+        Promise.all([countPromise, listPromise]) as Promise<[[{ count: number}], MusicInfo[]]>)
     if (err) {
         err = err as Error;
         logger.error(`[获取扫描歌曲] ${err.message}`)
@@ -577,9 +606,9 @@ export async function getMusicsByScanId(scanId: number, page: number = 1, size: 
         logger.error(`[获取扫描歌曲] 无法获取指定歌单数据`)
         return [err, resData];
     }
-
-    resData.total = res[0].count as number;
+    resData.total = res[0][0].count as number;
     resData.data = res[1] as MusicInfo[];
+    console.log(resData);
     return [err, resData];
 }
 

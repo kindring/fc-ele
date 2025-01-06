@@ -76,13 +76,15 @@ export interface Page<T> {
     // 每页数量
     size: number;
     // 总文件数量
-    total: number;
+    total?: number;
     // 排序字段
     sort: string;
     // 排序方式
     order: Order;
     // 实际数据
     data: T;
+    // 搜索关键字
+    key?: string;
 }
 
 

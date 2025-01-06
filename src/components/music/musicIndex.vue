@@ -5,7 +5,7 @@ import {MusicScanSetting, PlayList} from "@/types/musicType.ts";
 import PlayListInfo from "./common/playListInfo.vue";
 import message from "@/components/public/kui/message";
 import MusicSetting from "@/components/music/common/musicSetting.vue";
-import {fetchPlayList, fetchScanConfig} from "@/apis/musicControl.ts";
+import {fetchPlayList, fetchScanConfig, musicAppStart} from "@/apis/musicControl.ts";
 import {ErrorCode} from "@/types/apiTypes.ts";
 import {Tab, TabGroup, TabList, TabPanel, TabPanels} from "@headlessui/vue";
 import ScanListInfo from "@/components/music/common/scanListInfo.vue";
@@ -57,8 +57,21 @@ async function loadPlayList()
   }
 }
 
+async function startScan()
+{
+  let responseData = await musicAppStart();
+  if (responseData.code === ErrorCode.success)
+  {
+    message.success(`扫描成功`);
+  } else
+  {
+    message.error(responseData.msg);
+  }
+}
+
 onBeforeMount(()=>{
   loadPlayList();
+  startScan();
 })
 
 function showMusicSetting()

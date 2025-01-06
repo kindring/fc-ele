@@ -9,7 +9,9 @@ export interface Calendar {
     // todo 农历
 }
 
-
+function _tf(i: number): string {
+    return (i < 10 ? '0' : '') + i;
+};
 /**
  * 时间戳转时间字符串
  * @param timestamp - 时间戳
@@ -43,7 +45,27 @@ export function timeStrToTimeStamp(timeStr: string, isSecond: boolean): number {
 }
 
 
-
+/**
+ * 秒数转为格式化字符串
+ * @param seconds - 秒数
+ * @param format - 格式化字符串
+ * @returns {string} - 格式化后的时间字符串
+ */
+export function secondToTimeStr(seconds: number, format: string = 'MM:DD:HH:mm:ss'): string {
+    // 忽略小数部分, 不四舍五入
+    seconds = Math.floor(seconds);
+    return format
+        .replace(/ss/, _tf(seconds % 60))
+        .replace(/s/, String(seconds % 60))
+        .replace(/mm/, _tf(Math.floor(seconds / 60) % 60))
+        .replace(/m/, String(Math.floor(seconds / 60) % 60))
+        .replace(/HH/, _tf(Math.floor(seconds / 3600)))
+        .replace(/H/, String(Math.floor(seconds / 3600)))
+        .replace(/DD/, _tf(Math.floor(seconds / 86400)))
+        .replace(/D/, String(Math.floor(seconds / 86400)))
+        .replace(/MM/, _tf(Math.floor(seconds / 86400)))
+        .replace(/M/, String(Math.floor(seconds / 86400)));
+}
 
 
 /**
@@ -53,20 +75,18 @@ export function timeStrToTimeStamp(timeStr: string, isSecond: boolean): number {
  * @returns {string} - 格式化后的时间字符串
  */
 export function timeFormat(t: Date, format: string): string {
-    let tf = function(i: number) {
-        return (i < 10 ? '0' : '') + i;
-    };
 
-    return format.replace(/yyyy/, tf(t.getFullYear()))
-        .replace(/MM/, tf(t.getMonth() + 1))
+
+    return format.replace(/yyyy/, _tf(t.getFullYear()))
+        .replace(/MM/, _tf(t.getMonth() + 1))
         .replace(/M/, String(t.getMonth() + 1))
-        .replace(/dd/, tf(t.getDate()))
+        .replace(/dd/, _tf(t.getDate()))
         .replace(/d/, String(t.getDate()))
-        .replace(/HH/, tf(t.getHours()))
+        .replace(/HH/, _tf(t.getHours()))
         .replace(/H/, String(t.getHours()))
-        .replace(/mm/, tf(t.getMinutes()))
+        .replace(/mm/, _tf(t.getMinutes()))
         .replace(/m/, String(t.getMinutes()))
-        .replace(/ss/, tf(t.getSeconds()))
+        .replace(/ss/, _tf(t.getSeconds()))
         .replace(/s/, String(t.getSeconds()));
 }
 

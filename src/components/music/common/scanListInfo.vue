@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import {MusicInfo, MusicScanSetting} from "@/types/musicType.ts";
-  import {PropType, ref} from "vue";
+import {onBeforeMount, PropType, ref, watch} from "vue";
 import LickIcon from "@/components/music/common/lickIcon.vue";
 import IconSvg from "@/components/public/icon/iconSvg.vue";
 import message from "@/components/public/kui/message";
+import {api_likeMusic, fetchScanMusic} from "@/apis/musicControl.ts";
+import {ErrorCode} from "@/types/apiTypes.ts";
+import {secondToTimeStr} from "@/util/time.ts";
+import {music_action_emits, Music_Action_events} from "@/components/music/music_emits.ts";
 
 const props = defineProps({
   scanSetting: {
@@ -12,37 +16,73 @@ const props = defineProps({
   }
 })
 
-const scanCount = ref(0)
-const musicList = ref<MusicInfo[]>([
-  {
-    name: "霜雪千年",
-    artists: ["1"],
-    cover: "1",
-    duration: 1,
-    filePath: "1",
-    id: 1,
-    key: "",
-    isLike: true,
-    isLocal: true,
-    lyricPath: "1",
-    origin: "1",
-    playCount: 1,
-    tags: ["1"],
-    type: 1,
-    album: "1",
-    scanId: 1,
-  },
-])
 
+let scanSetting_id = ref(0)
+const scanCount = ref(0)
+const musicList = ref<MusicInfo[]>([])
+const search_key = ref("");
+const search_page = ref(1);
+const page_limit = 10;
+const lock_loading = ref(false);
+async function loadMusic(scanSetting: MusicScanSetting, page: number, key: string = '')
+{
+  console.log("loadMusic");
+  if (lock_loading.value)
+  {
+    message.info("正在加载中，请稍后");
+    return;
+  }
+  lock_loading.value = true;
+  let res = await fetchScanMusic(scanSetting.id, page, page_limit, key)
+  lock_loading.value = false;
+  if (res.code === ErrorCode.success)
+  {
+    if (page === 1)
+    {
+      scanCount.value = res.data.total?? 0;
+    }
+
+    let pageData = res.data.data ;
+    for ( let i = 0; i < pageData.length; i++)
+    {
+      pageData[i].isLike = !!pageData[i].isLike;
+      pageData[i].isLocal = !!pageData[i].isLocal;
+      musicList.value.push(pageData[i]);
+    }
+  }
+  else {
+    message.error(res.msg);
+  }
+}
+
+watch(()=>props.scanSetting, ()=>{
+  if (scanSetting_id.value !== props.scanSetting.id)
+  {
+    musicList.value = [];
+    loadMusic(props.scanSetting, 1, search_key.value);
+  }
+})
+
+async function loadMore()
+{
+  search_page.value++;
+  await loadMusic(props.scanSetting, search_page.value, search_key.value);
+}
+
+onBeforeMount(()=>{
+  loadMusic(props.scanSetting, search_page.value, search_key.value);
+})
 
 function playMusic(item: MusicInfo) {
   console.log(item);
   message.info(`play ${item.name}`);
+  music_action_emits(Music_Action_events.play_music, item);
 }
 
 function likeMusic(item: MusicInfo) {
   console.log(item);
   message.info(`like ${item.name}`);
+  api_likeMusic(item.id);
 }
 function showMore(item: MusicInfo) {
   console.log(item);
@@ -76,6 +116,7 @@ function showMore(item: MusicInfo) {
         <div class="isLike">喜欢</div>
       </div>
     </div>
+<!--    让下面框在滑动到底部时自动加载下一级数据 -->
     <div class="music-list-con scroll">
       <div v-for="item in musicList"
            class="music-list-item"
@@ -87,7 +128,7 @@ function showMore(item: MusicInfo) {
         <div class="name">{{item.name}}</div>
         <div class="artists">{{item.artists}}</div>
         <div class="origin">{{item.origin}}</div>
-        <div class="duration">{{item.duration}}</div>
+        <div class="duration">{{ secondToTimeStr(item.duration, "m分s秒" )}}</div>
         <lick-icon class="isLike" :like="item.isLike"
                    @click.stop.capture="likeMusic(item)"/>
         <div class="more">
@@ -115,10 +156,10 @@ function showMore(item: MusicInfo) {
   box-sizing: border-box;
   border-radius: 5px;
   margin: 5px auto;
-
+  font-size: 1em;
   background-color: var(--color-background-mute);
 }
-.name {
+.info .name {
   width: 100%;
   height: 40px;
   font-size: 1.5rem;

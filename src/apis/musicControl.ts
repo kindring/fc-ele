@@ -2,7 +2,14 @@ import api from "./baseApi.ts"
 import {Order, Page, ResponseData} from "@/types/apiTypes.ts";
 import {Music_Actions} from "@/apis/ApiAction.ts";
 import {MusicInfo, MusicScanSetting, PlayList} from "@/types/musicType.ts";
+import {promises} from "fs-extra";
 
+export async function musicAppStart()
+{
+    let [_callId, promise] = api.sendQuery(Music_Actions.music_app_start, {});
+    let response = await promise;
+    return response;
+}
 export async function fetchPlayList(): Promise< ResponseData<PlayList[]> >
 {
     let [_callId, promise] = api.sendQuery(Music_Actions.play_list_fetch, {});
@@ -42,10 +49,19 @@ export async function deleteScanConfig(id: number) : Promise<ResponseData<boolea
     return await promise;
 }
 
-export async function fetchScanMusic(scanId: number, page: number = 1, size: number = 10, 
-                                     orderBy: string = 'id', 
+export async function fetchScanMusic(scanId: number, page: number = 1, size: number = 10,
+                                     key: string = '',
+                                     sort: string = 'id',
                                      order: Order = Order.desc): Promise<ResponseData<Page<MusicInfo[]>>>
 {
-    let [_callId, promise] = api.sendQuery(Music_Actions.scan_music_fetch, {scanId, page, size, orderBy, order});
+    let [_callId, promise] = api.sendQuery(Music_Actions.scan_music_fetch,
+        {data: scanId, page, size, sort, order, key} as Page<number>);
     return await promise as ResponseData<Page<MusicInfo[]>>;
 }
+
+export async function api_likeMusic(musicId: number): Promise<ResponseData<boolean>>
+{
+    let [_callId, promise] = api.sendQuery(Music_Actions.like_music, musicId);
+    return await promise;
+}
+
