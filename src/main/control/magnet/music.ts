@@ -7,9 +7,9 @@ import {MusicInfo, MusicScanSetting, MusicType, param_music_like, PlayList} from
 import {
     addMusic, addPlayListMusic,
     addScanConfig,
-    deleteScanConfig, get_like_playlist, getMusicByKey, getMusicsByScanId, getPlayList,
+    deleteScanConfig, get_like_playlist, getMusicByKey, getMusicsByPlayListId, getMusicsByScanId, getPlayList,
     getScanConfig,
-    getScanConfigByPath, initDefaultPlayList, likeMusic,
+    getScanConfigByPath, initDefaultPlayList, likeMusic, removePlayListMusic,
     updateScanConfig
 } from "@/common/db/db_music.ts";
 import {handle, PromiseResult, ResType} from "@/util/promiseHandle.ts";
@@ -187,15 +187,18 @@ export async function c_load_scan_music(requestData: RequestData<Page<number>>)
 }
 
 
+
 /**
  * 喜欢音频
  * @param requestData
  */
 export async function c_like_music(requestData: RequestData<param_music_like>) : Promise<ResponseData<boolean>>
 {
-    logger.info(`[喜欢音频] ${requestData.data}`)
+    const __func__ = 'c_like_music'
     let likeData = requestData.data;
     logger.info(`[喜欢音频] ${likeData.musicId} ${likeData.isLike}`)
+
+
     let [err, res] = await get_like_playlist();
     if (err) {
         logger.error(`[获取喜欢列表] ${err.message}`)
@@ -209,18 +212,52 @@ export async function c_like_music(requestData: RequestData<param_music_like>) :
     }
     let bool: ResType<boolean> = false;
     // 歌单中添加歌曲
-    [err, bool] = await addPlayListMusic(playList.id, likeData.musicId);
-    if (err) {
-        logger.error(`[添加喜欢列表] ${err.message}`)
-        return t_gen_res(requestData, ErrorCode.db, '添加喜欢列表失败', false)
+    if (likeData.isLike)
+    {
+        // 判断歌单中是否存在该歌曲
+        [err, bool] = await addPlayListMusic(playList.id, likeData.musicId);
+        if (err) {
+            logger.error(`${__func__} [添加喜欢列表] ${err.message}`)
+            return t_gen_res(requestData, ErrorCode.db, '添加喜欢列表失败', false)
+        }
+    } else
+    {
+        // 取消喜欢
+        [err, bool] = await removePlayListMusic(playList.id, likeData.musicId);
+        if (err) {
+            logger.error(`${__func__} [取消喜欢] ${err.message}`)
+            return t_gen_res(requestData, ErrorCode.db, '取消喜欢失败', false)
+        }
     }
+
     [err, bool] = await likeMusic(likeData.musicId, likeData.isLike);
     if (err) {
-        logger.error(`[喜欢音频失败] ${err.message}`)
+        logger.error(`${__func__} 更改数据失败 ${err.message}`)
         return t_gen_res(requestData, ErrorCode.db, '喜欢音频失败', false)
     }
     bool = bool as boolean;
     return t_res_ok(requestData,  bool)
+}
+
+
+export async function c_fetchPlayList_music(requestData: RequestData<Page<number>>): Promise<ResponseData<Page<MusicInfo>>>
+{
+    const __func__ = 'c_fetchPlayList_music()'
+    let queryParam = requestData.data as Page<number>;
+    logger.info(`[获取歌单音频] ${queryParam}`)
+    logger.info(`[获取歌单音频] ${queryParam.data}`)
+    let [err, sons] = await getMusicsByPlayListId(queryParam.data,
+        queryParam.key,
+        queryParam.page,
+        queryParam.size,
+        queryParam.sort,
+        queryParam.order)
+    if (err) {
+        logger.error(`${__func__} [获取歌单音频] ${err.message}`)
+        return t_gen_res(requestData, ErrorCode.db, '获取歌单音频失败', false)
+    }
+    sons = sons as Page<MusicInfo[]>;
+    return t_res_ok(requestData,  sons)
 }
 
 async function _read_music_info(filePath: string) : PromiseResult<IAudioMetadata>
@@ -288,7 +325,7 @@ async function _scan_dir(scanSetting: MusicScanSetting, basePath: string = "") :
 }
 // https://www.npmjs.com/package/music-metadata
 
-async function _next_id(scanSetting_id: number):Promise<string>
+export async function _next_id(scanSetting_id: number):Promise<string>
 {
     let id = randomAzStr(randomNumber(16));
     id = `${scanSetting_id}_${id}`

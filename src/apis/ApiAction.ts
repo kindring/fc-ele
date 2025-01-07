@@ -15,4 +15,5 @@ export enum Music_Actions {
   scan_music_delete = 'scan_music_delete',
   scan_music_fetch = 'scan_music_fetch',
   like_music = 'like_music',
+  playlist_music_fetch = 'playlist_music_fetch'
 }

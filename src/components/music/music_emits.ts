@@ -1,3 +1,4 @@
+import {defineEmits} from "vue";
 import {MusicInfo} from "@/types/musicType.ts";
 
 export enum Music_Action_events {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {MusicInfo, MusicScanSetting} from "@/types/musicType.ts";
+import {MusicInfo, MusicScanSetting, param_music_like} from "@/types/musicType.ts";
 import {onBeforeMount, PropType, ref, watch} from "vue";
 import LickIcon from "@/components/music/common/lickIcon.vue";
 import IconSvg from "@/components/public/icon/iconSvg.vue";
@@ -79,16 +79,30 @@ function playMusic(item: MusicInfo) {
   music_action_emits(Music_Action_events.play_music, item);
 }
 
-function likeMusic(item: MusicInfo) {
-  console.log(item);
-  message.info(`like ${item.name}`);
-  api_likeMusic(item.id);
+async function likeMusic(item: MusicInfo) {
+  // console.log(item);
+  // message.info(`like ${item.name}`);
+  let nextLike = !item.isLike;
+  let param: param_music_like = {
+    musicId: item.id,
+    isLike: nextLike
+  }
+  let res = await api_likeMusic(param);
+  if (res.code === ErrorCode.success)
+  {
+    item.isLike = nextLike;
+  }
+  else {
+    message.error(res.msg);
+  }
 }
 function showMore(item: MusicInfo) {
   console.log(item);
   message.info(`show ${item.name}`);
-
 }
+
+// todo 下拉继续加载歌单功能开发
+
 </script>
 
 <template>

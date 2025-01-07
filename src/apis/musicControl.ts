@@ -1,7 +1,7 @@
 import api from "./baseApi.ts"
 import {Order, Page, ResponseData} from "@/types/apiTypes.ts";
 import {Music_Actions} from "@/apis/ApiAction.ts";
-import {MusicInfo, MusicScanSetting, PlayList} from "@/types/musicType.ts";
+import {MusicInfo, MusicScanSetting, param_music_like, PlayList} from "@/types/musicType.ts";
 import {promises} from "fs-extra";
 
 export async function musicAppStart()
@@ -59,9 +59,19 @@ export async function fetchScanMusic(scanId: number, page: number = 1, size: num
     return await promise as ResponseData<Page<MusicInfo[]>>;
 }
 
-export async function api_likeMusic(musicId: number): Promise<ResponseData<boolean>>
+export async function api_fetchMusic(playlist_id: number, page: number = 1, size: number = 10,
+                                     key: string = '',
+                                     sort: string = 'id',
+                                     order: Order = Order.desc): Promise<ResponseData<Page<MusicInfo[]>>>
 {
-    let [_callId, promise] = api.sendQuery(Music_Actions.like_music, musicId);
+    let [_callId, promise] = api.sendQuery(Music_Actions.playlist_music_fetch,
+        {data: playlist_id, page, size, sort, order, key} as Page<number>);
+    return await promise as ResponseData<Page<MusicInfo[]>>;
+}
+
+export async function api_likeMusic(param: param_music_like): Promise<ResponseData<boolean>>
+{
+    let [_callId, promise] = api.sendQuery(Music_Actions.like_music, param);
     return await promise;
 }
 

@@ -121,7 +121,7 @@ async function _initSongsTable(db : Knex): PromiseResult<boolean>
             //     // table.string('key')
             //     table.integer('scanId')
             // })
-            await removeMusicByScanId(4);
+            // await removeMusicByScanId(4);
         }
         return [null, true];
     }
@@ -164,6 +164,10 @@ async function _initPlaylistSongs(db : Knex): PromiseResult<boolean>
         logger.error(`[歌单歌曲表初始化] ${err.message}`)
         return [new Error('歌单歌曲表初始化'), false]
     }
+    // 删除表
+    // if (hasTable) {
+    //     await db.schema.dropTable(MusicTableName.music_play_list_songs)
+    // }
     if (hasTable) {
         return [null, true];
     }
@@ -450,7 +454,22 @@ export async function addPlayListMusic(playlist_id: number, music_id: number) : 
         logger.error(`${__func__} 数据库初始化失败`)
         return [new Error(`${__key__} 音乐数据库初始化失败`), false]
     }
+    // 如果播放列表中已存在, 则返回 true
     let [err, _res] = await handle(
+        db.select('id')
+            .from(MusicTableName.music_play_list_songs)
+            .where('playListId', playlist_id)
+            .andWhere('musicId', music_id)
+    )
+    if (err) {
+        err = err as Error;
+        logger.error(`${__func__} ${__key__} 获取音频是否存在失败 ${err.message}`)
+        return [err, false];
+    }
+    if (_res && _res.length > 0) {
+        return [null, true];
+    }
+    [err, _res] = await handle(
         db.insert({
             playListId: playlist_id,
             musicId: music_id,
@@ -459,11 +478,34 @@ export async function addPlayListMusic(playlist_id: number, music_id: number) : 
     )
     if (err) {
         err = err as Error;
-        logger.error(`${__func__} ${__key__} 失败 ${err.message}`)
+        logger.error(`${__func__} ${__key__} 添加失败 ${err.message}`)
         return [err, false];
     }
     return [null, true];
     
+}
+
+export async function removePlayListMusic(playlist_id: number, music_id: number) : PromiseResult<boolean>
+{
+    const __func__ = 'addPlayListMusic()'
+    const __key__ = '列表移除歌曲'
+    let db = loadDb(AppDbName.music_db)
+    if(!db){
+        logger.error(`${__func__} 数据库初始化失败`)
+        return [new Error(`${__key__} 音乐数据库初始化失败`), false]
+    }
+    let [err, _res] = await handle(
+        db.delete()
+            .from(MusicTableName.music_play_list_songs)
+            .where('playListId', playlist_id)
+            .andWhere('musicId', music_id)
+    )
+    if (err) {
+        err = err as Error;
+        logger.error(`${__func__} ${__key__} 移除失败 ${err.message}`)
+        return [err, false];
+    }
+    return [null, true];
 }
 
 export async function getMusicByKey(musicKey: string) : PromiseResult<MusicInfo>
@@ -532,7 +574,7 @@ export async function likeMusic(id: number, isLike: boolean) : PromiseResult<boo
         return [new Error('音乐数据库初始化失败'), false]
     }
     let [err, _res] = await handle(
-        db.update({isLike: isLike}).where('id', id)
+        db.update({isLike: isLike}).from(MusicTableName.music_songs).where('id', id)
     )
     if (err) {
         err = err as Error;
@@ -553,7 +595,7 @@ export async function likeMusic(id: number, isLike: boolean) : PromiseResult<boo
  * @param order
  */
 export async function getMusicsByScanId(scanId: number, key: string = '', page: number = 1, size: number = 10,
-                                        sort: string = 'id', order: 'asc' | 'desc' = 'asc')
+                                        sort: string = 'id', order: Order = Order.asc)
     : PromiseResult<Page<MusicInfo[]>>
 {
     let db = loadDb(AppDbName.music_db)
@@ -567,7 +609,7 @@ export async function getMusicsByScanId(scanId: number, key: string = '', page: 
         data: [],
         page: page,
         size: size,
-        order: order as Order,
+        order: order,
         sort: sort,
         key: key,
     }
@@ -629,4 +671,74 @@ export async function removeMusicByScanId(scanId: number) : PromiseResult<boolea
         return [err, false];
     }
     return [err, true];
+}
+
+
+/**
+ * 根据歌单ID获取歌曲
+ * @param playListId
+ * @param key
+ * @param page
+ * @param size
+ * @param sort
+ * @param order
+ */
+export async function getMusicsByPlayListId(playListId: number, key: string = '', page: number = 1, size: number = 10,
+                                        sort: string = 'id', order: Order = Order.asc): PromiseResult<Page<MusicInfo[]>>
+{
+    const __func__ = `getMusicsByPlayListId`
+    let db = loadDb(AppDbName.music_db)
+    if(!db){
+        logger.error(`${__func__} 数据库初始化失败`)
+        return [new Error('音乐数据库初始化失败'), null]
+    }
+    let countPromise;
+    let resData: Page<MusicInfo[]> = {
+        total: 0,
+        data: [],
+        page: page,
+        size: size,
+        order: order as Order,
+        sort: sort,
+        key: key,
+    }
+    // 第一页尝试获取总数量
+    if (page === 1)
+    {
+        countPromise = db.count(`${MusicTableName.music_play_list_songs}.id as count`)
+            .from(MusicTableName.music_play_list_songs)
+            .join(MusicTableName.music_songs, `${MusicTableName.music_play_list_songs}.musicId`, '=', 'music_songs.id')
+            .where(`${MusicTableName.music_play_list_songs}.playListId`, playListId)
+            if (key) {
+                countPromise.andWhere('key', 'like', `%${key}%`)
+            }
+    } else
+    {
+        countPromise = Promise.resolve([{count: 0}]);
+    }
+    let listPromise = db.select(...Music_field.map(_field=>`${MusicTableName.music_songs}.${_field}`))
+        .from(MusicTableName.music_play_list_songs)
+        .join(MusicTableName.music_songs, `${MusicTableName.music_play_list_songs}.musicId`, '=', 'music_songs.id')
+        .where(`${MusicTableName.music_play_list_songs}.playListId`, playListId)
+        if (key) {
+            listPromise.andWhere(`${MusicTableName.music_songs}.name`, 'like', `%${key}%`)
+        }
+        listPromise.limit(size)
+        .offset((page - 1) * size)
+        .orderBy(`${MusicTableName.music_songs}.${sort}`, order )
+    let [err, res] = await handle<[[{ count: number}], MusicInfo[]]>(
+        Promise.all([countPromise, listPromise]) as Promise<[[{ count: number}], MusicInfo[]]>)
+    if (err) {
+        err = err as Error;
+        logger.error(`${__func__} [获取歌单歌曲失败] ${err.message}`)
+        return [err, resData];
+    }
+    if (!res) {
+        logger.error(`${__func__} [获取歌单歌曲失败] 无法获取指定歌单数据`)
+        return [err, resData];
+    }
+    resData.total = res[0][0].count as number;
+    resData.data = res[1] as MusicInfo[];
+
+    return [err, resData];
 }

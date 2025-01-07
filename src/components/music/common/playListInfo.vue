@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import {defineComponent, PropType, ref} from "vue";
-import {MusicInfo, PlayList} from "@/types/musicType.ts";
+import {defineComponent, onBeforeMount, PropType, ref, watch} from "vue";
+import {MusicInfo, param_music_like, PlayList} from "@/types/musicType.ts";
 import LickIcon from "@/components/music/common/lickIcon.vue";
 import IconSvg from "@/components/public/icon/iconSvg.vue";
 import message from "@/components/public/kui/message";
+import {api_fetchMusic, api_likeMusic} from "@/apis/musicControl.ts";
+import {ErrorCode} from "@/types/apiTypes.ts";
 
 defineComponent({name: "play-list-info"});
 
@@ -14,37 +16,87 @@ const props = defineProps({
   }
 })
 
-const musicList = ref<MusicInfo[]>([
-  {
-    name: "霜雪千年",
-    artists: ["1"],
-    cover: "1",
-    duration: 1,
-    filePath: "1",
-    id: 1,
-    key: "",
-    isLike: true,
-    isLocal: true,
-    lyricPath: "1",
-    origin: "1",
-    playCount: 1,
-    tags: ["1"],
-    type: 1,
-    album: "1",
-    scanId: 1,
-  },
-])
+const musicList = ref<MusicInfo[]>([])
 
+let playlist_id = ref(0)
+const lock_loading = ref(false);
+const scanCount = ref(0)
+const search_key = ref("");
+const search_page = ref(1);
+
+const page_limit = 10;
+
+async function loadPlayListMusic(playList: PlayList, page: number, key: string){
+  if (lock_loading.value)
+  {
+    message.info("正在加载中，请稍后");
+    return;
+  }
+  lock_loading.value = true;
+  let res = await api_fetchMusic(playList.id, page, page_limit, key)
+  lock_loading.value = false;
+  if (res.code === ErrorCode.success)
+  {
+    if (page === 1)
+    {
+      scanCount.value = res.data.total?? 0;
+    }
+    let pageData = res.data.data;
+    for ( let i = 0; i < pageData.length; i++)
+    {
+      pageData[i].isLike = !!pageData[i].isLike;
+      pageData[i].isLocal = !!pageData[i].isLocal;
+      musicList.value.push(pageData[i]);
+    }
+  } else {
+    message.error(res.msg);
+  }
+
+}
+
+onBeforeMount(()=>{
+  if (props.playList && props.playList.id)
+  {
+    loadPlayListMusic(props.playList, search_page.value, search_key.value);
+  }
+})
+
+watch(()=>props.playList, ()=>{
+  if (playlist_id.value !== props.playList.id)
+  {
+    musicList.value = [];
+    loadPlayListMusic(props.playList, 1, search_key.value);
+  }
+})
 
 function playMusic(item: MusicInfo) {
   console.log(item);
   message.info(`play ${item.name}`);
 }
 
-function likeMusic(item: MusicInfo) {
- console.log(item);
- message.info(`like ${item.name}`);
+async function likeMusic(item: MusicInfo) {
+  // console.log(item);
+  // message.info(`like ${item.name}`);
+  let nextLike = !item.isLike;
+  let param: param_music_like = {
+    musicId: item.id,
+    isLike: nextLike
+  }
+  let res = await api_likeMusic(param);
+  if (res.code === ErrorCode.success)
+  {
+    item.isLike = nextLike;
+    if ( props.playList.isLike )
+    {
+      // 移除该项
+      musicList.value = musicList.value.filter(item => item.id !== param.musicId);
+    }
+  }
+  else {
+    message.error(res.msg);
+  }
 }
+
 function showMore(item: MusicInfo) {
   console.log(item);
   message.info(`show ${item.name}`);
