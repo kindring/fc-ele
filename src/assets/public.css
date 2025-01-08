@@ -66,23 +66,36 @@
     height: calc(100% - 51px);
     overflow-x: hidden;
     overflow-y: auto;
+    padding-bottom: 15px;
 }
 .music-list-item {
     border-bottom: 1px solid #ccc; /* 可选：增加底部边框，分隔各行 */
     position: relative;
     display: grid; /* 使用 Grid 布局 */
-    grid-template-columns: auto 1fr 1fr 1fr 1fr 1fr; /* 设置列的布局 */
+    grid-template-columns: 60px 1fr 60px 80px 80px;
     gap: 10px; /* 列之间的间距 */
     width: 100%;
     height: 60px;
     padding: 5px 10px;
     box-sizing: border-box;
 }
+.music-list-item .item-info{
+    overflow: hidden;
+}
 
 .music-list-item .name{
     font-weight: bold;
     font-size: 1.1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
+
+.music-list-item .name:hover{
+    text-overflow: ellipsis;
+}
+
+
 
 .cover {
     width: 50px; /* 封面图片固定宽度 */
@@ -103,6 +116,12 @@
     display: flex;
     align-items: center;
 }
+.music-list-head .music-list-item > * {
+    text-align: left; /* 文本左对齐 */
+    height: 100%; /* 所有列的最小高度一致 */
+    display: flex;
+    align-items: center;
+}
 .more{
     color: var(--color-text-pirmary);
     position: absolute;
@@ -118,3 +137,5 @@
 .music-list-con .music-list-item:hover{
     background-color: var(--color-background-soft);
 }
+
+

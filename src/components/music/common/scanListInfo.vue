@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {MusicInfo, MusicScanSetting, param_music_like} from "@/types/musicType.ts";
-import {onBeforeMount, PropType, ref, watch} from "vue";
+import {defineEmits, onBeforeMount, PropType, ref, watch} from "vue";
 import LickIcon from "@/components/music/common/lickIcon.vue";
 import IconSvg from "@/components/public/icon/iconSvg.vue";
 import message from "@/components/public/kui/message";
@@ -8,6 +8,7 @@ import {api_likeMusic, fetchScanMusic} from "@/apis/musicControl.ts";
 import {ErrorCode} from "@/types/apiTypes.ts";
 import {secondToTimeStr} from "@/util/time.ts";
 import {music_action_emits, Music_Action_events} from "@/components/music/music_emits.ts";
+import HideText from "@/components/public/hideText.vue";
 
 const props = defineProps({
   scanSetting: {
@@ -63,15 +64,31 @@ watch(()=>props.scanSetting, ()=>{
   }
 })
 
+let load_more_repeat = 0;
 async function loadMore()
 {
+  if (musicList.value.length >= scanCount.value)
+  {
+    load_more_repeat++;
+    if (load_more_repeat > 3)
+    {
+      message.info("没有更多数据了");
+      load_more_repeat = 0;
+      return;
+    }
+    return;
+  }
   search_page.value++;
+  message.info("加载剩余数据");
   await loadMusic(props.scanSetting, search_page.value, search_key.value);
 }
 
 onBeforeMount(()=>{
   loadMusic(props.scanSetting, search_page.value, search_key.value);
 })
+const music_action_emits = defineEmits<{
+  (e: Music_Action_events.play_music , music: MusicInfo): void,
+}>()
 
 function playMusic(item: MusicInfo) {
   console.log(item);
@@ -101,7 +118,7 @@ function showMore(item: MusicInfo) {
   message.info(`show ${item.name}`);
 }
 
-// todo 下拉继续加载歌单功能开发
+// todo 下拉菜单
 
 </script>
 
@@ -123,15 +140,14 @@ function showMore(item: MusicInfo) {
         <div class="cover">
 
         </div>
-        <div class="name">名称</div>
-        <div class="artists">艺术家</div>
+        <div class="item-info">曲名</div>
         <div class="origin">来源</div>
         <div class="duration">时长</div>
-        <div class="isLike">喜欢</div>
+        <div class="isLike">操作</div>
       </div>
     </div>
 <!--    让下面框在滑动到底部时自动加载下一级数据 -->
-    <div class="music-list-con scroll">
+    <div class="music-list-con scroll" @scrollend="loadMore()">
       <div v-for="item in musicList"
            class="music-list-item"
            @click="playMusic(item)"
@@ -139,14 +155,20 @@ function showMore(item: MusicInfo) {
         <div class="cover">
           <img :src="item.cover" alt=""/>
         </div>
-        <div class="name">{{item.name}}</div>
-        <div class="artists">{{item.artists}}</div>
+        <hide-text class="item-info"
+                   :text="item.name"
+                   :enable-copy="true"
+                   :copy-success="()=>{message.success('复制歌曲名称成功')}"
+        >
+          <div class="name">{{item.name}}</div>
+          <div class="artists">{{item.artists}}</div>
+        </hide-text>
         <div class="origin">{{item.origin}}</div>
         <div class="duration">{{ secondToTimeStr(item.duration, "m分s秒" )}}</div>
         <lick-icon class="isLike" :like="item.isLike"
                    @click.stop.capture="likeMusic(item)"/>
         <div class="more">
-          <icon-svg icon-name="add" @click.stop.capture="showMore(item)"></icon-svg>
+          <icon-svg icon-name="more" @click.stop.capture="showMore(item)"></icon-svg>
         </div>
       </div>
     </div>

@@ -6,6 +6,8 @@ import IconSvg from "@/components/public/icon/iconSvg.vue";
 import message from "@/components/public/kui/message";
 import {api_fetchMusic, api_likeMusic} from "@/apis/musicControl.ts";
 import {ErrorCode} from "@/types/apiTypes.ts";
+import {secondToTimeStr} from "../../../util/time.ts";
+import HideText from "@/components/public/hideText.vue";
 
 defineComponent({name: "play-list-info"});
 
@@ -100,9 +102,25 @@ async function likeMusic(item: MusicInfo) {
 function showMore(item: MusicInfo) {
   console.log(item);
   message.info(`show ${item.name}`);
-
 }
 
+let load_more_repeat = 0;
+async function loadMore()
+{
+  if (musicList.value.length >= scanCount.value)
+  {
+    if (load_more_repeat > 3)
+    {
+      message.info("没有更多数据了");
+      load_more_repeat = 0;
+      return;
+    }
+    return;
+  }
+  search_page.value++;
+  message.info("加载剩余数据");
+  await loadPlayListMusic(props.playList, search_page.value, search_key.value);
+}
 
 </script>
 
@@ -124,14 +142,13 @@ function showMore(item: MusicInfo) {
           <div class="cover">
 
           </div>
-          <div class="name">名称</div>
-          <div class="artists">艺术家</div>
+          <div class="item-info">名称</div>
           <div class="origin">来源</div>
           <div class="duration">时长</div>
           <div class="isLike">喜欢</div>
         </div>
       </div>
-      <div class="music-list-con scroll">
+      <div class="music-list-con scroll" @scrollend="loadMore()">
         <div v-for="item in musicList"
              class="music-list-item"
              @click="playMusic(item)"
@@ -139,14 +156,18 @@ function showMore(item: MusicInfo) {
           <div class="cover">
             <img :src="item.cover" alt=""/>
           </div>
-          <div class="name">{{item.name}}</div>
-          <div class="artists">{{item.artists}}</div>
+          <hide-text class="item-info" :text="item.name"
+                     :enable-copy="true"
+                     :copy-success="()=>{message.success('复制歌曲名称成功')}">
+            <div class="name">{{item.name}}</div>
+            <div class="artists">{{item.artists}}</div>
+          </hide-text>
           <div class="origin">{{item.origin}}</div>
-          <div class="duration">{{item.duration}}</div>
+          <div class="duration">{{ secondToTimeStr(item.duration, "m分s秒" )}}</div>
           <lick-icon class="isLike" :like="item.isLike"
                      @click.stop.capture="likeMusic(item)"/>
           <div class="more">
-            <icon-svg icon-name="add" @click.stop.capture="showMore(item)"></icon-svg>
+            <icon-svg icon-name="more" @click.stop.capture="showMore(item)"></icon-svg>
           </div>
         </div>
       </div>
