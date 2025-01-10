@@ -66,9 +66,7 @@ async function selectPathHandle() {
   }
 }
 
-async function addScanDirHandle() {
 
-}
 async function submitHandle() {
 
   let param: MusicScanSetting = {

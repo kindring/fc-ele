@@ -9,12 +9,14 @@ import {fetchPlayList, fetchScanConfig, musicAppStart} from "@/apis/musicControl
 import {ErrorCode} from "@/types/apiTypes.ts";
 import {Tab, TabGroup, TabList, TabPanel, TabPanels} from "@headlessui/vue";
 import ScanListInfo from "@/components/music/common/scanListInfo.vue";
+import {KuiDialogCmd} from "@/components/public/kui-dialog-cmd.ts";
+import addPlayList from "@/components/music/dialog/addPlayList.vue";
 
 defineComponent({
   name: "musicIndex"
 })
 
-defineProps({
+const props = defineProps({
   windowId: {
     type: String,
     default: ''
@@ -94,7 +96,8 @@ async function fetchScanSetting()
 }
 
 async function changeTab(index: number) {
-  if (site_view_key.value === site_views[index])
+
+  if (site_view_key.value === site_views[index] )
   {
     return;
   }
@@ -121,6 +124,28 @@ function changeScanList(index: number)
   console.log(scanSetting);
   selectScanIndex.value = index;
   musicViewShow.value = showScanList;
+}
+
+
+const kuiDialog = new KuiDialogCmd({
+  showContent: addPlayList,
+  mountTarget: props.windowId,
+  className: 'dialog',
+  on: {
+  },
+  onClose: closeDialogHandle
+});
+
+function closeDialogHandle()
+{
+  loadPlayList();
+  return true;
+}
+
+function addBtnClickHandle()
+{
+  message.info("add btn click");
+  kuiDialog.show()
 }
 </script>
 
@@ -183,6 +208,11 @@ function changeScanList(index: number)
 
 <!--        设置-->
         <div class="setting-group">
+          <icon-svg class="icon mr-2"
+                    v-if="musicViewShow === showPlayList"
+                    @click.stop.capture="addBtnClickHandle"
+                    v-tooltip.top="'添加歌单'"
+                    icon-name="add"/>
           <icon-svg class="icon" @click.stop.capture="showMusicSetting" icon-name="setting"/>
         </div>
       </div>
