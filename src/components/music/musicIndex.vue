@@ -81,6 +81,7 @@ function showMusicSetting()
   message.info("show music setting");
   musicViewShow.value = showSetting;
   selectPlaylistIndex.value = -1;
+  siteTab.value = -1;
 }
 
 
@@ -97,11 +98,12 @@ async function fetchScanSetting()
 
 async function changeTab(index: number) {
 
-  if (site_view_key.value === site_views[index] )
+  siteTab.value = index
+  if (musicViewShow.value !== showSetting && site_view_key.value === site_views[index] )
   {
     return;
   }
-  siteTab.value = index
+
   site_view_key.value = site_views[index];
   if (site_view_key.value === site_playList)
   {
@@ -165,7 +167,9 @@ function addBtnClickHandle()
           </div>
         </div>
 
-          <TabGroup as="div" class="site-chunk play-list" :selectedIndex="siteTab" @change="changeTab">
+          <TabGroup as="div" class="site-chunk play-list"
+                    :selectedIndex="siteTab"
+                    @change="changeTab">
             <TabList as="div" class="tab-head">
               <Tab as="template" v-slot="{ selected }"  >
                 <button :class="`tab-head-item ${selected?'head-select':''}`">
