@@ -5,11 +5,22 @@ import {ErrorCode, Page, RequestData, ResponseData} from "@/types/apiTypes.ts";
 import Logger from "@/util/logger.ts";
 import {MusicInfo, MusicScanSetting, MusicType, param_music_like, PlayList} from "@/types/musicType.ts";
 import {
-    addMusic, addPlayListMusic,
-    addScanConfig,
-    deleteScanConfig, get_like_playlist, getMusicByKey, getMusicsByPlayListId, getMusicsByScanId, getPlayList,
+    addMusic,
+    addPlayList,
+    addPlayListMusic,
+    addScanConfig, db_playlist_delete,
+    deleteScanConfig,
+    editPlayList,
+    get_like_playlist,
+    getMusicByKey,
+    getMusicsByPlayListId,
+    getMusicsByScanId,
+    getPlayList,
     getScanConfig,
-    getScanConfigByPath, initDefaultPlayList, likeMusic, removePlayListMusic,
+    getScanConfigByPath,
+    initDefaultPlayList,
+    likeMusic, playlist_find_by_id, playlist_song_remove,
+    removePlayListMusic,
     updateScanConfig
 } from "@/common/db/db_music.ts";
 import {handle, PromiseResult, ResType} from "@/util/promiseHandle.ts";
@@ -271,6 +282,82 @@ async function _read_music_info(filePath: string) : PromiseResult<IAudioMetadata
     return [null, metadata as IAudioMetadata];
 }
 
+
+export async function c_playList_add(requestData: RequestData<Partial<PlayList>>) : Promise<ResponseData<boolean>>
+{
+    let addParam = requestData.data as Partial<PlayList>;
+    // 新添加的歌单都不为默认歌单
+    addParam.isLike = false;
+    let [err, res] = await addPlayList(addParam);
+    if (err) {
+        return t_gen_res(requestData, ErrorCode.db, '添加歌单失败', false)
+    }
+    res = res as boolean;
+    return t_res_ok(requestData,  res);
+}
+
+export async function c_playlist_edit(requestData: RequestData<Partial<PlayList>>) : Promise<ResponseData<boolean>>
+{
+    let err: Error | null = null;
+    let playList: ResType<PlayList> ,
+        res: ResType<boolean>;
+    
+    let editParam = requestData.data as Partial<PlayList>;
+    // 查看歌单是否存在
+    if (editParam.id === -1) {
+        return t_gen_res(requestData, ErrorCode.db, '歌单不存在', false)
+    }
+    [err, playList] = await playlist_find_by_id(editParam.id as number);
+    if (err) {
+        return t_gen_res(requestData, ErrorCode.db, '无法检索歌单', false)
+    }
+    playList = playList as PlayList;
+    if (playList.isLike) {
+        return t_gen_res(requestData, ErrorCode.db, '默认歌单不允许编辑', false)
+    }
+    [err, res] = await editPlayList(editParam);
+    if (err) {
+        return t_gen_res(requestData, ErrorCode.db, '编辑歌单失败', false)
+    }
+    res = res as boolean;
+    return t_res_ok(requestData,  res);
+}
+
+export async function c_playlist_delete(requestData: RequestData<number>) : Promise<ResponseData<boolean>>
+{
+    let id = requestData.data;
+    let err: Error | null = null;
+    let playList: ResType<PlayList>,
+        res: ResType<boolean>;
+    if (id < 0 || id === undefined) {
+        return t_gen_res(requestData, ErrorCode.params, 'id参数错误', false)
+    }
+    [err, playList] = await playlist_find_by_id(id);
+    if (err) {
+        return t_gen_res(requestData, ErrorCode.db, '无法检索歌单', false);
+    }
+    playList = playList as PlayList;
+    if (playList === undefined || playList === null) {
+        return t_gen_res(requestData, ErrorCode.db, '歌单不存在', false)
+    }
+    if (playList.isLike) {
+        return t_gen_res(requestData, ErrorCode.permission, '默认歌单不允许删除', false)
+    }
+    if (playList.id === -1) {
+        return t_gen_res(requestData, ErrorCode.db, '歌单不存在', false)
+    }
+    // 移除歌单对应的歌曲
+    [err, res] = await playlist_song_remove(playList.id);
+    if (err) {
+        return t_gen_res(requestData, ErrorCode.db, '删除歌单歌曲失败', false)
+    }
+    [err, res] = await db_playlist_delete(playList.id);
+    if (res) {
+        return t_gen_res(requestData, ErrorCode.db, '删除歌单失败', false)
+    }
+    res = res as boolean;
+    return t_res_ok(requestData,  res);
+}
 
 /**
  * 获取扫描配置下的音频文件

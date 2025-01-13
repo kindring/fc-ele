@@ -26,6 +26,23 @@ const Music_field = [
     'playCount',
     'scanId',
 ]
+
+const Music_playList_field = [
+    'id',
+    'name',
+    'icon',
+    'cover',
+    'description',
+    'playCount',
+    'trackCount',
+    'createTime',
+    'isTagSearch',
+    'lastPlayTime',
+    'isSync',
+    'isPublic',
+    'isLike',
+]
+
 async function _initScanConfigTable(db : Knex): PromiseResult<boolean> {
     let [err, hasTable] = await handle(
         db.schema.hasTable(MusicTableName.music_scan_setting)
@@ -399,8 +416,47 @@ export async function getPlayList() : PromiseResult<PlayList[]>
     return [null, res as PlayList[]];
 }
 
+export async function playlist_find_by_id(id: number): PromiseResult<PlayList>
+{
+    let db = loadDb(AppDbName.music_db)
+    if(!db){
+        logger.error('数据库初始化失败')
+        return [new Error('音乐数据库初始化失败'), null]
+    }
+    let [err, _res] = await handle(
+        db.select(...Music_playList_field)
+            .from(MusicTableName.music_play_list)
+            .where('id', id)
+            .first()
+    )
+    if (err) {
+        err = err as Error;
+        logger.error(`[获取播放列表失败] ${err.message}`)
+        return [err, null];
+    }
+    return [null, _res as PlayList];
+}
 
-export async function addPlayList(playList: PlayList) : PromiseResult<boolean>
+export async function db_playlist_delete(id: number) : PromiseResult<boolean>
+{
+    const __func__ = 'playlist_delete()'
+    let db = loadDb(AppDbName.music_db)
+    if(!db){
+        logger.error(`${__func__} 数据库初始化失败`)
+        return [new Error('音乐数据库初始化失败'), false]
+    }
+    let [err, _res] = await handle(
+        db.delete().from(MusicTableName.music_play_list).where('id', id)
+    )
+    if (err) {
+        err = err as Error;
+        logger.error(`${__func__} [删除播放列表失败] ${err.message}`)
+        return [err, false];
+    }
+    return [null, true];
+}
+
+export async function addPlayList(playList: Partial<PlayList>) : PromiseResult<boolean>
 {
     let db = loadDb(AppDbName.music_db)
     if(!db){
@@ -507,6 +563,63 @@ export async function removePlayListMusic(playlist_id: number, music_id: number)
     }
     return [null, true];
 }
+
+export async function playlist_song_remove(playlist_id: number) : PromiseResult<boolean>
+{
+    const __func__ = 'playlist_song_remove()'
+    let db = loadDb(AppDbName.music_db)
+    if(!db){
+        logger.error(`${__func__} 数据库初始化失败`)
+        return [new Error('[移除播放列表歌曲] 音乐数据库初始化失败'), false]
+    }
+    let [err, _res] = await handle(
+        db.delete().from(MusicTableName.music_play_list_songs).where('playListId', playlist_id)
+    )
+    if (err) {
+        err = err as Error;
+        logger.error(`${__func__} 移除歌单失败 ${err.message}`)
+        return [err, false];
+    }
+    return [null, true];
+}
+
+export async function editPlayList(playlist: Partial<PlayList>) : PromiseResult<boolean>
+{
+    let db = loadDb(AppDbName.music_db)
+    if(!db){
+        logger.error('数据库初始化失败')
+        return [new Error('音乐数据库初始化失败'), false]
+    }
+    let [err, _res] = await handle(
+        db.update(playlist).into(MusicTableName.music_play_list).where('id', playlist.id)
+    )
+   if (err) {
+       err = err as Error;
+       logger.error(`[编辑播放列表失败] ${err.message}`)
+       return [err, false];
+   }
+   return [null, true];
+}
+
+export async function deletePlayList(playlist_id: number) : PromiseResult<boolean>
+{
+    let db = loadDb(AppDbName.music_db)
+    if(!db){
+        logger.error('数据库初始化失败')
+        return [new Error('音乐数据库初始化失败'), false]
+    }
+    let [err, _res] = await handle(
+        db.delete().from(MusicTableName.music_play_list).where('id', playlist_id)
+    )
+    if (err) {
+        err = err as Error;
+        logger.error(`[删除播放列表失败] ${err.message}`)
+        return [err, false];
+    }
+    return [null, true];
+}
+
+
 
 export async function getMusicByKey(musicKey: string) : PromiseResult<MusicInfo>
 {

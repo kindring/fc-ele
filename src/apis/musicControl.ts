@@ -2,7 +2,7 @@ import api from "./baseApi.ts"
 import {Order, Page, ResponseData} from "@/types/apiTypes.ts";
 import {Music_Actions} from "@/apis/ApiAction.ts";
 import {MusicInfo, MusicScanSetting, param_music_like, PlayList} from "@/types/musicType.ts";
-import {promises} from "fs-extra";
+
 
 export async function musicAppStart()
 {
@@ -75,3 +75,22 @@ export async function api_likeMusic(param: param_music_like): Promise<ResponseDa
     return await promise;
 }
 
+
+export async function api_playlist_update(param: Partial<PlayList>): Promise<ResponseData<boolean>>
+{
+    let [_callId, promise] = api.sendQuery(Music_Actions.play_list_update, param);
+    return await promise;
+}
+
+
+export async function api_playlist_add(param: Partial<PlayList>): Promise<ResponseData<boolean>>
+{
+    let [_callId, promise] = api.sendQuery(Music_Actions.play_list_add, param);
+    return await promise;
+}
+
+export async function api_playlist_delete(id: number): Promise<ResponseData<boolean>>
+{
+    let [_callId, promise] = api.sendQuery(Music_Actions.play_list_delete, id);
+    return await promise;
+}

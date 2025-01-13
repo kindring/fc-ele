@@ -133,8 +133,7 @@ const kuiDialog = new KuiDialogCmd({
   showContent: addPlayList,
   mountTarget: props.windowId,
   className: 'dialog',
-  on: {
-  },
+  on: { },
   onClose: closeDialogHandle
 });
 

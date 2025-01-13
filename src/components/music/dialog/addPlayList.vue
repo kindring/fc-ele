@@ -3,6 +3,9 @@ import {defineComponent, onMounted, PropType, ref} from "vue";
 import {PlayList} from "@/types/musicType.ts";
 import KuiInput from "@/components/public/kui/kui-input.vue";
 import KuiCheckbox from "@/components/public/kui/kui-checkbox.vue";
+import message from "@/components/public/kui/message";
+import {ErrorCode} from "@/types/apiTypes.ts";
+import {api_playlist_add, api_playlist_update} from "@/apis/musicControl.ts";
 
 defineComponent({
   name: "addPlayList"
@@ -70,6 +73,45 @@ function closeDialog() {
 
 async function submitHandle() {
   console.log('submit');
+  // 创建歌单
+  let param: Partial<PlayList> = {
+    name: playlistName.value,
+    description: description.value,
+    cover: cover.value,
+    isPublic: isPublic.value,
+    isLike: isLike.value
+  }
+  if (!param.name)
+  {
+    message.error('歌单名称不能为空');
+    return;
+  }
+  if (isEdit)
+  {
+    // 编辑歌单
+    param.id = props.playlist.id;
+    let res = await api_playlist_update(param);
+    if (res.code === ErrorCode.success)
+    {
+      message.success('编辑成功');
+      emits('submit');
+    }
+    else {
+      message.error(res.msg);
+    }
+  }
+  else {
+    // 创建歌单
+    let res = await api_playlist_add(param);
+    if (res.code === ErrorCode.success)
+    {
+      message.success('创建成功');
+      emits('submit');
+    }
+    else {
+      message.error(res.msg);
+    }
+  }
 }
 
 </script>
@@ -93,7 +135,9 @@ async function submitHandle() {
         />
       </div>
 
-      <div class="form-row mt-4" >
+      <div class="form-row mt-4"
+           v-if="isLike"
+      >
         <kui-input
             label="歌单描述"
             placeholder="歌单的描述"
@@ -122,6 +166,6 @@ async function submitHandle() {
   height: 40px;
   display: flex;
   align-items: center;
-  margin: 0 auto;
+  margin: 1rem auto;
 }
 </style>
