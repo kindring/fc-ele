@@ -8,6 +8,8 @@ import {api_fetchMusic, api_likeMusic} from "@/apis/musicControl.ts";
 import {ErrorCode} from "@/types/apiTypes.ts";
 import {secondToTimeStr} from "../../../util/time.ts";
 import HideText from "@/components/public/hideText.vue";
+import {KuiDialogCmd} from "@/components/public/kui-dialog-cmd.ts";
+import addPlayList from "@/components/music/dialog/addPlayList.vue";
 
 defineComponent({name: "play-list-info"});
 
@@ -15,6 +17,10 @@ const props = defineProps({
   playList: {
     type: Object as PropType<PlayList>,
     default: () => ({})
+  },
+  windowId: {
+    type: String,
+    default: ""
   }
 })
 
@@ -27,6 +33,10 @@ const search_key = ref("");
 const search_page = ref(1);
 
 const page_limit = 10;
+
+const emits =  defineEmits<{
+  (e: 'reload'): void
+}>()
 
 async function loadPlayListMusic(playList: PlayList, page: number, key: string){
   if (lock_loading.value)
@@ -122,6 +132,35 @@ async function loadMore()
   await loadPlayListMusic(props.playList, search_page.value, search_key.value);
 }
 
+
+const playlist_dialog = new KuiDialogCmd({
+  showContent: addPlayList,
+  mountTarget: props.windowId,
+  className: 'dialog',
+  on: { },
+  onClose: closeDialogHandle
+});
+
+function closeDialogHandle()
+{
+  console.log("close dialog");
+  emits('reload');
+}
+
+function editBtnClickHandle()
+{
+  // message.info("edit btn click");
+  playlist_dialog.show({
+    playlist: props.playList
+  })
+}
+
+function deleteBtnClickHandle()
+{
+  message.info("delete btn click");
+
+}
+
 </script>
 
 <template>
@@ -134,6 +173,18 @@ async function loadMore()
         <div class="name">{{playList.name}}</div>
         <div class="desc">{{playList.description}}</div>
         <div class="time">创建时间: {{playList.createTime}}</div>
+      </div>
+      <div
+          v-if="!playList.isLike"
+          class="edit-btn"
+          @click="editBtnClickHandle">
+        <icon-svg icon-name="edit"/>
+      </div>
+      <div v-if="!playList.isLike"
+           class="delete-btn"
+           @click="deleteBtnClickHandle"
+      >
+        <icon-svg icon-name="remove"/>
       </div>
     </div>
     <div class="music-lists">
@@ -220,6 +271,33 @@ async function loadMore()
   font-size: 0.8rem;
   margin-top: 10px;
   color: #999;
+}
+.edit-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: var(--color-background);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.delete-btn {
+  position: absolute;
+  top: 10px;
+  right: 50px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: var(--color-background);
+  color: var(--color-text-money);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
 }
 
 </style>

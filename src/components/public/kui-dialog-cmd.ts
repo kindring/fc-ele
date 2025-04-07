@@ -1,23 +1,8 @@
-import {Component, h, render} from "vue";
+import { h, render} from "vue";
 import alertModel from "./alertModel.vue"
+import KuiContextMenu from "./kui-context-menu.vue"
+import {KuiDialogCmdOptions, KuiDialogType} from "./kui-dialog-type.ts";
 
-export enum KuiDialogType {
-    alert,
-    confirm,
-    prompt,
-    loading,
-    custom
-}
-export interface KuiDialogCmdOptions {
-    dialogType?: KuiDialogType;
-    showContent: string | Component;
-    mountTarget?: string;
-    className?: string;
-    onClose?: () => void;
-    beforeClose?: () => boolean;
-    onOk?: () => void;
-    on?: Record<string, (...args: any[]) => void>;
-}
 export class KuiDialogCmd {
     static defaultOptions: KuiDialogCmdOptions = {
         dialogType: KuiDialogType.custom,
@@ -51,6 +36,15 @@ export class KuiDialogCmd {
 
     show( props?: any ) {
         let eventListeners;
+
+        if (this.options.contextMenu) {
+            props = {
+                ...props,
+                position: this.options.position,
+                menuItems: this.options.menuItems
+            }
+        }
+
         if (this.options.dialogType === KuiDialogType.alert) {
             eventListeners = {
                 onOk: () => {
@@ -80,12 +74,17 @@ export class KuiDialogCmd {
             ...eventListeners,
             ...this.options.on
         });
+        console.log(this.options.showContent);
         render(vNode, this.containerEl);
         let target = document.getElementById(<string>this.options.mountTarget);
         if (!target) {
             target = document.body;
         }
+        console.log("show")
+        console.log(this.containerEl)
+        console.log(target)
         target.appendChild(this.containerEl);
+        console.log(target)
         this.targetEl = target;
         this.showFlag = true;
     }
@@ -155,4 +154,27 @@ export function showAlert( alertOptions: KuiDialogAlertOptions, mountTarget: str
         showCancel: _alertOptions.showCancel,
     });
     return dialog;
+}
+
+export function showContextMenu(
+    options: {
+        position: { x: number; y: number }
+        menuItems: Array<{ label: string; action: () => void }>
+    },
+    mountTarget: string = "kui-root"
+): KuiDialogCmd
+{
+    const dialogOptions: KuiDialogCmdOptions = {
+        dialogType: KuiDialogType.custom,
+        showContent: KuiContextMenu,
+        mountTarget,
+        contextMenu: true,
+        position: options.position,
+        menuItems: options.menuItems,
+        className: "context-menu-wrapper"
+    }
+
+    const dialog = new KuiDialogCmd(dialogOptions)
+    dialog.show()
+    return dialog
 }

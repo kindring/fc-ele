@@ -288,6 +288,9 @@ export async function c_playList_add(requestData: RequestData<Partial<PlayList>>
     let addParam = requestData.data as Partial<PlayList>;
     // 新添加的歌单都不为默认歌单
     addParam.isLike = false;
+    addParam.createTime = new Date().getTime();
+    addParam.playCount = 0;
+    addParam.isSync = false;
     let [err, res] = await addPlayList(addParam);
     if (err) {
         return t_gen_res(requestData, ErrorCode.db, '添加歌单失败', false)

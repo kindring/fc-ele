@@ -86,7 +86,7 @@ async function submitHandle() {
     message.error('歌单名称不能为空');
     return;
   }
-  if (isEdit)
+  if (isEdit.value)
   {
     // 编辑歌单
     param.id = props.playlist.id;
@@ -94,7 +94,7 @@ async function submitHandle() {
     if (res.code === ErrorCode.success)
     {
       message.success('编辑成功');
-      emits('submit');
+      emits('close');
     }
     else {
       message.error(res.msg);
@@ -106,7 +106,7 @@ async function submitHandle() {
     if (res.code === ErrorCode.success)
     {
       message.success('创建成功');
-      emits('submit');
+      emits('close');
     }
     else {
       message.error(res.msg);

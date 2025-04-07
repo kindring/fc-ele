@@ -9,7 +9,7 @@ import {fetchPlayList, fetchScanConfig, musicAppStart} from "@/apis/musicControl
 import {ErrorCode} from "@/types/apiTypes.ts";
 import {Tab, TabGroup, TabList, TabPanel, TabPanels} from "@headlessui/vue";
 import ScanListInfo from "@/components/music/common/scanListInfo.vue";
-import {KuiDialogCmd} from "@/components/public/kui-dialog-cmd.ts";
+import {KuiDialogCmd, showContextMenu} from "@/components/public/kui-dialog-cmd.ts";
 import addPlayList from "@/components/music/dialog/addPlayList.vue";
 
 defineComponent({
@@ -129,13 +129,26 @@ function changeScanList(index: number)
 }
 
 
-const kuiDialog = new KuiDialogCmd({
+const playlist_dialog = new KuiDialogCmd({
   showContent: addPlayList,
   mountTarget: props.windowId,
   className: 'dialog',
   on: { },
   onClose: closeDialogHandle
 });
+
+function handleRightClick(e: MouseEvent, item: PlayList) {
+  console.log(`右键菜单 ${e.clientX}, ${e.clientY}`)
+  // e.preventDefault()
+
+  showContextMenu({
+    position: { x: e.clientX, y: e.clientY },
+    menuItems: [
+      { label: '复制', action: () => console.log(item) },
+      { label: '粘贴', action: () => console.log('粘贴') }
+    ]
+  })
+}
 
 function closeDialogHandle()
 {
@@ -146,7 +159,13 @@ function closeDialogHandle()
 function addBtnClickHandle()
 {
   message.info("add btn click");
-  kuiDialog.show()
+  playlist_dialog.show()
+}
+
+function reloadPlayList()
+{
+  loadPlayList();
+  // message.success("刷新成功");
 }
 </script>
 
@@ -188,6 +207,7 @@ function addBtnClickHandle()
                     :key="item.id"
                     :class="`list-item ${i == selectPlaylistIndex?'select-item':''}` "
                     @click="changePlayList(i)"
+                    @contextmenu="e=>handleRightClick(e, item)"
                 >
                   <div class="icon">
                     <IconSvg :icon-name="item.icon" />
@@ -220,7 +240,11 @@ function addBtnClickHandle()
         </div>
       </div>
       <div class="play-list-info">
-        <play-list-info v-if="musicViewShow === showPlayList" :play-list="playList[selectPlaylistIndex]"/>
+        <play-list-info
+            v-if="musicViewShow === showPlayList"
+            :play-list="playList[selectPlaylistIndex]"
+            @reload="reloadPlayList"
+        />
         <scan-list-info v-if="musicViewShow === showScanList" :scan-setting="scanSettings[selectScanIndex]"/>
         <music-setting v-if="musicViewShow === showSetting"
                        :window-id="windowId"/>
